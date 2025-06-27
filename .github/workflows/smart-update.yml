@@ -1,0 +1,156 @@
+name: Smart Data Update with Notifications
+
+on:
+  schedule:
+    # Run twice daily - morning and evening
+    - cron: '0 8,20 * * *'
+  workflow_dispatch:
+
+jobs:
+  smart-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        
+    - name: Backup current data
+      run: |
+        cp languages.json languages.json.backup
+        cp scms.json scms.json.backup
+        
+    - name: Update languages data
+      run: |
+        echo "Updating languages database..."
+        python enrich_languages_with_semgrep_docs.py
+        
+    - name: Update SCMs data
+      run: |
+        echo "Updating SCMs database..."
+        python enrich_scms_with_semgrep_docs.py
+        
+    - name: Analyze changes
+      id: analyze-changes
+      run: |
+        python3 << 'EOF'
+        import json
+        import sys
+        
+        def load_json(file):
+            try:
+                with open(file, 'r') as f:
+                    return json.load(f)
+            except:
+                return {}
+        
+        # Compare languages
+        old_langs = load_json('languages.json.backup')
+        new_langs = load_json('languages.json')
+        
+        # Compare SCMs
+        old_scms = load_json('scms.json.backup')
+        new_scms = load_json('scms.json')
+        
+        significant_changes = []
+        
+        # Check for new languages
+        if isinstance(old_langs, dict) and isinstance(new_langs, dict):
+            old_lang_names = set(old_langs.keys()) if old_langs else set()
+            new_lang_names = set(new_langs.keys()) if new_langs else set()
+            new_languages = new_lang_names - old_lang_names
+            
+            if new_languages:
+                significant_changes.append(f"🆕 New languages added: {', '.join(new_languages)}")
+        
+        # Check for SCM changes
+        if isinstance(old_scms, dict) and isinstance(new_scms, dict):
+            for scm_name in new_scms.keys():
+                if scm_name in old_scms:
+                    old_plans = old_scms[scm_name].get('plans', {})
+                    new_plans = new_scms[scm_name].get('plans', {})
+                    if old_plans != new_plans:
+                        significant_changes.append(f"🔄 {scm_name} features updated")
+        
+        # Set GitHub output
+        with open('/tmp/github_output', 'w') as f:
+            if significant_changes:
+                f.write(f"significant=true\n")
+                f.write(f"changes_summary={' | '.join(significant_changes)}\n")
+            else:
+                f.write(f"significant=false\n")
+                f.write(f"changes_summary=Minor updates only\n")
+        EOF
+        
+        # Read the output file and set GitHub outputs
+        if [ -f "/tmp/github_output" ]; then
+          cat /tmp/github_output >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Check for any changes
+      id: verify-changes
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "changed=true" >> $GITHUB_OUTPUT
+        else
+          echo "changed=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Commit changes
+      if: steps.verify-changes.outputs.changed == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add languages.json scms.json
+        git commit -m "🤖 Smart update: ${{ steps.analyze-changes.outputs.changes_summary }}"
+        git push
+        
+    - name: Create notification issue for significant changes
+      if: steps.verify-changes.outputs.changed == 'true' && steps.analyze-changes.outputs.significant == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '📊 Significant Feature Matrix Updates Detected',
+            body: `## 🚨 Important Changes in Feature Matrix Data
+            
+            **Summary:** ${{ steps.analyze-changes.outputs.changes_summary }}
+            
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### What happened?
+            The automated data update detected significant changes that may impact your presentations or documentation:
+            
+            ${{ steps.analyze-changes.outputs.changes_summary }}
+            
+            ### Action Items:
+            - [ ] Review the updated data in \`languages.json\` and \`scms.json\`
+            - [ ] Update any presentation materials that reference these features
+            - [ ] Consider regenerating feature matrices for upcoming demos
+            - [ ] Notify relevant team members of these changes
+            
+            ### Files Updated:
+            - \`languages.json\` - Language support matrix
+            - \`scms.json\` - SCM integration capabilities
+            
+            ---
+            *This issue was automatically created by the smart update workflow. Close it when you've reviewed the changes.*`,
+            labels: ['enhancement', 'automated', 'data-update']
+          })
+          
+    - name: Clean up backup files
+      run: |
+        rm -f languages.json.backup scms.json.backup 
