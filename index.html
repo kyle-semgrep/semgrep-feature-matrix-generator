@@ -335,18 +335,14 @@
         function populateSCMsReference() {
             const container = document.getElementById('scms-reference');
             
-            const scmGroups = {};
+            let html = '<table class="language-table"><tr><th>SCM & Plan</th><th>Unsupported Features</th></tr>';
+            
             scmsData.forEach(scm => {
-                if (!scmGroups[scm.scm]) {
-                    scmGroups[scm.scm] = [];
-                }
-                scmGroups[scm.scm].push(scm.plan);
-            });
-            
-            let html = '<table class="language-table"><tr><th>SCM</th><th>Available Plans</th></tr>';
-            
-            Object.keys(scmGroups).forEach(scm => {
-                html += '<tr><td>' + scm + '</td><td>' + scmGroups[scm].join(', ') + '</td></tr>';
+                const unsupported = Array.isArray(scm.unsupported_features) 
+                    ? scm.unsupported_features.join(', ') 
+                    : scm.unsupported_features || 'None';
+                
+                html += '<tr><td><strong>' + scm.scm + '</strong><br><em>' + scm.plan + '</em></td><td>' + unsupported + '</td></tr>';
             });
             
             html += '</table>';
@@ -370,20 +366,43 @@
             const planSelect = document.getElementById('plan');
             const selectedSCM = scmSelect.value;
             
-            planSelect.innerHTML = '<option value="">Select SCM first...</option>';
+            // Clear existing options
+            planSelect.innerHTML = '';
             
-            if (selectedSCM) {
-                const plans = scmsData
-                    .filter(scm => scm.scm === selectedSCM)
-                    .map(scm => scm.plan);
-                
-                plans.forEach(plan => {
-                    const option = document.createElement('option');
-                    option.value = plan;
-                    option.textContent = plan;
-                    planSelect.appendChild(option);
-                });
+            if (!selectedSCM) {
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select SCM first...';
+                planSelect.appendChild(defaultOption);
+                return;
             }
+            
+            // Get unique plans for the selected SCM
+            const plans = [...new Set(scmsData
+                .filter(scm => scm.scm === selectedSCM)
+                .map(scm => scm.plan))];
+            
+            if (plans.length === 0) {
+                const noPlansOption = document.createElement('option');
+                noPlansOption.value = '';
+                noPlansOption.textContent = 'No plans available';
+                planSelect.appendChild(noPlansOption);
+                return;
+            }
+            
+            // Add a default "Select plan..." option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select plan...';
+            planSelect.appendChild(defaultOption);
+            
+            // Add all available plans
+            plans.forEach(plan => {
+                const option = document.createElement('option');
+                option.value = plan;
+                option.textContent = plan;
+                planSelect.appendChild(option);
+            });
         }
 
         function setupEventListeners() {
