@@ -1,0 +1,91 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'languages.json'
+      - 'scms.json'
+      - 'index.html'
+      - 'web_interface.py'
+  workflow_dispatch:
+
+jobs:
+  deploy-to-gh-pages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    steps:
+    - name: Checkout main branch
+      uses: actions/checkout@v4
+      with:
+        ref: main
+        fetch-depth: 0
+
+    - name: Configure Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
+    - name: Check for data changes
+      id: check-changes
+      run: |
+        echo "Checking what files changed..."
+        CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }})
+        echo "Changed files: $CHANGED_FILES"
+        
+        if echo "$CHANGED_FILES" | grep -q "languages.json\|scms.json"; then
+          echo "data_changed=true" >> $GITHUB_OUTPUT
+          echo "📊 Data files detected in changes"
+        else
+          echo "data_changed=false" >> $GITHUB_OUTPUT
+          echo "ℹ️ No data file changes detected"
+        fi
+
+    - name: Switch to GitHub Pages branch
+      run: |
+        git checkout github-pages || git checkout -b github-pages
+
+    - name: Merge main into GitHub Pages
+      if: steps.check-changes.outputs.data_changed == 'true'
+      run: |
+        echo "Merging latest data from main branch..."
+        git merge main --no-edit || {
+          echo "Merge conflict detected, resolving by favoring main branch data..."
+          git checkout main -- languages.json scms.json index.html web_interface.py
+          git add languages.json scms.json index.html web_interface.py
+          git commit -m "🤖 Auto-resolve: Use latest data from main branch"
+        }
+
+    - name: Generate deployment summary
+      if: steps.check-changes.outputs.data_changed == 'true'
+      run: |
+        echo "## 🚀 GitHub Pages Deployment" >> $GITHUB_STEP_SUMMARY
+        echo "- **Source**: Main branch → GitHub Pages" >> $GITHUB_STEP_SUMMARY
+        echo "- **Updated Files**: " >> $GITHUB_STEP_SUMMARY
+        
+        if git diff HEAD~1 --name-only | grep -q "languages.json"; then
+          echo "  - ✅ languages.json (Latest Pro rules & language support)" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if git diff HEAD~1 --name-only | grep -q "scms.json"; then
+          echo "  - ✅ scms.json (Latest SCM integration features)" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "- **Deployment**: Live in 1-2 minutes" >> $GITHUB_STEP_SUMMARY
+        echo "- **Timestamp**: $(date +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+    - name: Push to GitHub Pages
+      if: steps.check-changes.outputs.data_changed == 'true'
+      run: |
+        git push origin github-pages
+
+    - name: Skip deployment message
+      if: steps.check-changes.outputs.data_changed == 'false'
+      run: |
+        echo "## ℹ️ GitHub Pages Deployment Skipped" >> $GITHUB_STEP_SUMMARY
+        echo "- **Reason**: No data file changes detected" >> $GITHUB_STEP_SUMMARY
+        echo "- **Status**: GitHub Pages is already up-to-date" >> $GITHUB_STEP_SUMMARY 
