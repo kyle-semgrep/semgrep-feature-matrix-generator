@@ -297,6 +297,8 @@
             try {
                 const response = await fetch('./scms.json?v=' + Date.now());
                 scmsData = await response.json();
+                console.log('SCMs data loaded:', scmsData.length, 'entries');
+                console.log('First few SCMs:', scmsData.slice(0, 3));
                 populateSCMsReference();
                 populateSCMDropdown();
             } catch (error) {
@@ -352,6 +354,7 @@
         function populateSCMDropdown() {
             const scmSelect = document.getElementById('scm');
             const uniqueSCMs = [...new Set(scmsData.map(scm => scm.scm))];
+            console.log('Populating SCM dropdown with:', uniqueSCMs);
             
             uniqueSCMs.forEach(scm => {
                 const option = document.createElement('option');
@@ -359,12 +362,14 @@
                 option.textContent = scm;
                 scmSelect.appendChild(option);
             });
+            console.log('SCM dropdown populated, total options:', scmSelect.options.length);
         }
 
         function updatePlans() {
             const scmSelect = document.getElementById('scm');
             const planSelect = document.getElementById('plan');
             const selectedSCM = scmSelect.value;
+            console.log('updatePlans called, selected SCM:', selectedSCM);
             
             // Clear existing options
             planSelect.innerHTML = '';
@@ -381,6 +386,7 @@
             const plans = [...new Set(scmsData
                 .filter(scm => scm.scm === selectedSCM)
                 .map(scm => scm.plan))];
+            console.log('Available plans for', selectedSCM + ':', plans);
             
             if (plans.length === 0) {
                 const noPlansOption = document.createElement('option');
@@ -403,6 +409,7 @@
                 option.textContent = plan;
                 planSelect.appendChild(option);
             });
+            console.log('Plan dropdown updated, total options:', planSelect.options.length);
         }
 
         function setupEventListeners() {
