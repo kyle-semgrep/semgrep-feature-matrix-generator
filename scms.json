@@ -1,0 +1,123 @@
+[
+  {
+    "scm": "Azure DevOps",
+    "plans": [
+      "Azure DevOps Cloud",
+      "Azure DevOps Server"
+    ],
+    "unsupported_features_by_plan": {
+      "Azure DevOps Cloud": [
+        "Query console",
+        "Auto PRs for Supply Chain findings"
+      ],
+      "Azure DevOps Server": [
+        "Semgrep Assistant",
+        "Semgrep Managed Scans",
+        "Pull request comments",
+        "Query console",
+        "Diff-aware scans",
+        "Sending findings to Semgrep AppSec Platform",
+        "Default branch identification",
+        "Auto PRs for Supply Chain findingsGeneric secrets (requires",
+        "Semgrep Assistant)"
+      ]
+    }
+  },
+  {
+    "scm": "Bitbucket",
+    "plans": [
+      "Bitbucket Cloud Free",
+      "Bitbucket Cloud Standard",
+      "Bitbucket Cloud Premium",
+      "Bitbucket Data Center"
+    ],
+    "unsupported_features_by_plan": {
+      "Bitbucket Cloud Free": [
+        "Semgrep Assistant\u2020",
+        "Semgrep Managed Scan\u2020",
+        "Query console",
+        "Auto PRs for Supply Chain findingsGeneric secrets (requires",
+        "Semgrep Assistant)"
+      ],
+      "Bitbucket Cloud Standard": [
+        "Semgrep Assistant\u2020",
+        "Semgrep Managed Scan\u2020",
+        "Query console",
+        "Auto PRs for Supply Chain findingsGeneric secrets (requires",
+        "Semgrep Assistant)"
+      ],
+      "Bitbucket Cloud Premium": [
+        "Query console",
+        "Auto PRs for Supply Chain findings"
+      ],
+      "Bitbucket Data Center": [
+        "Query console",
+        "Diff-aware scans require Bitbucket Data Center version 8.8 or later.",
+        "Auto PRs for Supply Chain findings"
+      ]
+    }
+  },
+  {
+    "scm": "GitHub",
+    "plans": [
+      "GitHub Free",
+      "GitHub Pro",
+      "GitHub Team",
+      "GitHub Enterprise Cloud",
+      "GitHub Enterprise Server"
+    ],
+    "unsupported_features_by_plan": {
+      "GitHub Free": [],
+      "GitHub Pro": [],
+      "GitHub Team": [],
+      "GitHub Enterprise Cloud": [],
+      "GitHub Enterprise Server": [
+        "Auto PRs for Supply Chain findings"
+      ]
+    }
+  },
+  {
+    "scm": "GitLab",
+    "plans": [
+      "GitLab Free",
+      "GitLab Premium",
+      "GitLab Ultimate",
+      "GitLab Dedicated / Dedicated for Government",
+      "GitLab Self-Managed Free",
+      "GitLab Self-Managed Premium",
+      "GitLab Self-Managed Ultimate"
+    ],
+    "unsupported_features_by_plan": {
+      "GitLab Free": [
+        "Semgrep Managed Scans*",
+        "Query console",
+        "Auto PRs for Supply Chain findings"
+      ],
+      "GitLab Premium": [
+        "Query console",
+        "Auto PRs for Supply Chain findings"
+      ],
+      "GitLab Ultimate": [
+        "Query console",
+        "Auto PRs for Supply Chain findings"
+      ],
+      "GitLab Dedicated / Dedicated for Government": [
+        "Query console",
+        "Auto PRs for Supply Chain findings"
+      ],
+      "GitLab Self-Managed Free": [
+        "Semgrep Managed Scans*",
+        "Query console",
+        "Auto PRs for Supply Chain findings"
+      ],
+      "GitLab Self-Managed Premium": [
+        "Query console",
+        "Auto PRs for Supply Chain findings"
+      ],
+      "GitLab Self-Managed Ultimate": [
+        "Query console",
+        "Auto PRs for Supply Chain findings"
+      ]
+    }
+  }
+]

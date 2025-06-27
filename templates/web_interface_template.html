@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Features Alignment Matrix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: #F5F7FA;
+            color: #1A202C;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 32px 24px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 16px 0 rgba(9, 116, 215, 0.08);
+        }
+        .semgrep-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .semgrep-header img {
+            height: 40px;
+        }
+        h1 {
+            color: #0974D7;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            text-align: right;
+        }
+        h2 {
+            color: #1A202C;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-top: 32px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            background: #F5F7FA;
+            color: #1A202C;
+        }
+        button {
+            background-color: #0974D7;
+            color: #fff;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #0757a0;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 18px;
+            border-radius: 10px;
+            background: #F5F7FA;
+            box-shadow: 0 1px 6px 0 rgba(9, 116, 215, 0.06);
+        }
+        .download-links {
+            margin-top: 20px;
+        }
+        .download-links a {
+            display: inline-block;
+            margin-right: 15px;
+            background-color: #0974D7;
+            color: #fff;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .download-links a:hover {
+            background-color: #0757a0;
+        }
+        .error {
+            color: #D7263D;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .supported-list {
+            columns: 4;
+            margin-bottom: 20px;
+        }
+        .language-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 0.97em;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px 0 rgba(9, 116, 215, 0.04);
+        }
+        .language-table th, .language-table td {
+            border: 1px solid #E2E8F0;
+            padding: 8px 10px;
+        }
+        .language-table th {
+            background-color: #0974D7;
+            color: #fff;
+            font-weight: 600;
+            font-size: 1em;
+        }
+        .language-table tr.ga { background-color: #E6F1FC; }
+        .language-table tr.beta { background-color: #FFF7E6; }
+        .language-table tr.experimental { background-color: #FDE6E6; }
+        .maturity-legend {
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+        .maturity-legend span {
+            padding: 2px 8px;
+            margin-right: 10px;
+            border-radius: 3px;
+        }
+        .maturity-legend span.ga {
+            background: #E6F1FC;
+            color: #0974D7;
+        }
+        .maturity-legend span.beta {
+            background: #FFF7E6;
+            color: #B26A00;
+        }
+        .maturity-legend span.experimental {
+            background: #FDE6E6;
+            color: #D7263D;
+        }
+        .collapsible {
+            background-color: #F5F7FA;
+            color: #0974D7;
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            text-align: left;
+            outline: none;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .active, .collapsible:hover {
+            background-color: #E6F1FC;
+        }
+        .content {
+            padding: 0 18px;
+            display: none;
+            overflow-x: auto;
+            overflow-y: hidden;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 6px 0 rgba(9, 116, 215, 0.04);
+        }
+        iframe {
+            border-radius: 8px;
+            border: 1px solid #E2E8F0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="semgrep-header">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Semgrep_logo.svg" alt="Semgrep Logo" />
+            <h1>Features Alignment Matrix</h1>
+        </div>
+        <div class="form-group">
+            <p>This tool helps quickly generate custom compatibility matrices based on customer requirements.<br>The sources that this tool relies on are:</p>
+            <ul>
+                <li><a href="https://semgrep.dev/docs/getting-started/scm-support" target="_blank" rel="noopener noreferrer">Official Semgrep SCMs Documentation</a></li>
+                <li><a href="https://semgrep.dev/docs/supported-languages" target="_blank" rel="noopener noreferrer">Official Semgrep Supported Languages Documentation</a></li>
+            </ul>
+        </div>
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        <form method="post" action="/">
+            <div class="form-group">
+                <label for="customer_name">Customer Name:</label>
+                <input type="text" id="customer_name" name="customer_name" required>
+            </div>
+            <div class="form-group">
+                <label for="languages">Languages (comma-separated):</label>
+                <input type="text" id="languages" name="languages" placeholder="e.g., python, java, javascript" required>
+                <button type="button" class="collapsible">View Supported Languages</button>
+                <div class="content">
+                    <div class="maturity-legend">
+                        <p><strong>Maturity Levels:</strong>
+                        <span class="ga">GA</span>
+                        <span class="beta">Beta</span>
+                        <span class="experimental">Experimental</span>
+                        </p>
+                    </div>
+                    <table class="language-table">
+                        <tr>
+                            <th>Language</th>
+                            <th>Maturity</th>
+                            <th>Dataflow</th>
+                            <th># Pro Rules</th>
+                            <th>Reachability</th>
+                            <th>Open Source Licenses</th>
+                            <th>Malicious Dependencies</th>
+                            <th>Package Managers</th>
+                            <th>Lockfiles</th>
+                            <th>Scan Without Lockfiles</th>
+                        </tr>
+                        {% for lang in all_languages %}
+                        <tr class="{{ lang['maturity']|lower }}">
+                            <td>{{ lang['language'] }}</td>
+                            <td>{{ lang['maturity'] }}</td>
+                            <td>{{ lang['semgrep_docs']['dataflow'] if lang['semgrep_docs'] is defined else '' }}</td>
+                            <td>{{ lang['semgrep_docs']['pro_rules'] if lang['semgrep_docs'] is defined else '' }}</td>
+                            <td>{% if lang['semgrep_docs'] is defined and lang['semgrep_docs']['reachability'] %}Yes{% else %}No{% endif %}</td>
+                            <td>{% if lang['semgrep_docs'] is defined and lang['semgrep_docs']['open_source_licenses'] %}Yes{% else %}No{% endif %}</td>
+                            <td>{% if lang['semgrep_docs'] is defined and lang['semgrep_docs']['malicious_dependencies'] %}Yes{% else %}No{% endif %}</td>
+                            <td>{{ lang['semgrep_docs']['package_managers']|join(', ') if lang['semgrep_docs'] is defined else '' }}</td>
+                            <td>{{ lang['semgrep_docs']['lockfiles']|join(', ') if lang['semgrep_docs'] is defined else '' }}</td>
+                            <td>{% if lang['semgrep_docs'] is defined and lang['semgrep_docs']['scan_without_lockfiles'] %}Yes{% else %}No{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="scms">Source Code Managers:</label>
+                <div id="scm-plan-list">
+                    <!-- Dynamic SCM+plan pairs will be inserted here -->
+                </div>
+                <button type="button" onclick="addScmPlan()">Add SCM + Plan</button>
+                <button type="button" class="collapsible">View Supported SCMs and Plans</button>
+                <div class="content">
+                    <table class="language-table">
+                        <tr>
+                            <th>SCM</th>
+                            <th>Plans</th>
+                            <th>Unsupported Features</th>
+                        </tr>
+                        {% for scm in all_scms %}
+                        <tr>
+                            <td>{{ scm['scm'] }}</td>
+                            <td>{{ scm['plans']|join(', ') }}</td>
+                            <td>
+                              {% set uf = scm['unsupported_features'] %}
+                              {% if uf is string %}
+                                {{ uf.replace('\r', '').replace('\n', ', ').replace('  ', ' ').strip(', ') }}
+                              {% elif uf is sequence %}
+                                {{ uf|join(', ') }}
+                              {% else %}
+                                {{ uf }}
+                              {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+            <input type="hidden" id="scm_plan_pairs" name="scm_plan_pairs">
+            <button type="submit">Generate Matrix</button>
+        </form>
+        {% if result %}
+        <div class="result">
+            <h2>Matrix Generated!</h2>
+            <p>Customer: {{ customer_name }}</p>
+            <p>Generated on: {{ generated_at }}</p>
+            <div class="download-links">
+                <a href="{{ url_for('download_file', filename='html', customer_name=customer_name) }}">Download HTML Report</a>
+                <a href="{{ url_for('download_file', filename='csv', customer_name=customer_name) }}">Download CSV Report</a>
+            </div>
+            <iframe src="{{ url_for('preview_html', customer_name=customer_name) }}" width="100%" height="600px" style="border: 1px solid #E2E8F0; margin-top: 20px;"></iframe>
+        </div>
+        {% endif %}
+    </div>
+    <script>
+    // Data from backend
+    const allScms = {{ all_scms|tojson }};
+    // State
+    let scmPlanPairs = [];
+    function addScmPlan() {
+        const idx = scmPlanPairs.length;
+        // Create SCM select
+        const scmSelect = document.createElement('select');
+        scmSelect.name = `scm_${idx}`;
+        scmSelect.className = 'scm-select';
+        scmSelect.onchange = function() { updatePlanDropdown(idx, scmSelect.value); };
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.text = '-- Select SCM --';
+        scmSelect.appendChild(defaultOption);
+        allScms.forEach(scm => {
+            const opt = document.createElement('option');
+            opt.value = scm.scm;
+            opt.text = scm.scm;
+            scmSelect.appendChild(opt);
+        });
+        // Create Plan select
+        const planSelect = document.createElement('select');
+        planSelect.name = `plan_${idx}`;
+        planSelect.className = 'plan-select';
+        planSelect.disabled = true;
+        const planDefault = document.createElement('option');
+        planDefault.value = '';
+        planDefault.text = '-- Select Plan --';
+        planSelect.appendChild(planDefault);
+        // Remove button
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.textContent = 'Remove';
+        removeBtn.onclick = function() {
+            document.getElementById('scm-plan-list').removeChild(wrapper);
+            scmPlanPairs[idx] = null;
+            updateHiddenInput();
+        };
+        // Wrapper
+        const wrapper = document.createElement('div');
+        wrapper.style.marginBottom = '8px';
+        wrapper.appendChild(scmSelect);
+        wrapper.appendChild(planSelect);
+        wrapper.appendChild(removeBtn);
+        document.getElementById('scm-plan-list').appendChild(wrapper);
+        scmPlanPairs.push({scm: '', plan: ''});
+        // Update plan dropdown when SCM changes
+        scmSelect.onchange = function() {
+            const selectedScm = scmSelect.value;
+            planSelect.innerHTML = '';
+            const planDefault = document.createElement('option');
+            planDefault.value = '';
+            planDefault.text = '-- Select Plan --';
+            planSelect.appendChild(planDefault);
+            if (selectedScm) {
+                const found = allScms.find(s => s.scm === selectedScm);
+                if (found) {
+                    found.plans.forEach(plan => {
+                        const opt = document.createElement('option');
+                        opt.value = plan;
+                        opt.text = plan;
+                        planSelect.appendChild(opt);
+                    });
+                    planSelect.disabled = false;
+                }
+            } else {
+                planSelect.disabled = true;
+            }
+            scmPlanPairs[idx].scm = selectedScm;
+            scmPlanPairs[idx].plan = '';
+            updateHiddenInput();
+        };
+        planSelect.onchange = function() {
+            scmPlanPairs[idx].plan = planSelect.value;
+            updateHiddenInput();
+        };
+    }
+    function updateHiddenInput() {
+        // Only keep valid pairs
+        const validPairs = scmPlanPairs.filter(p => p && p.scm && p.plan);
+        document.getElementById('scm_plan_pairs').value = JSON.stringify(validPairs);
+    }
+    // Add one by default
+    window.onload = function() {
+        addScmPlan();
+    };
+    </script>
+    <script>
+        var coll = document.getElementsByClassName("collapsible");
+        for (var i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        }
+    </script>
+</body>
+</html> 
