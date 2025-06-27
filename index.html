@@ -296,8 +296,22 @@
         async function loadSCMsData() {
             try {
                 const response = await fetch('./scms.json?v=' + Date.now());
-                scmsData = await response.json();
-                console.log('SCMs data loaded:', scmsData.length, 'entries');
+                const rawData = await response.json();
+                console.log('Raw SCMs data loaded:', rawData.length, 'entries');
+                
+                // Transform the data structure to match what the rest of the code expects
+                scmsData = [];
+                rawData.forEach(scmGroup => {
+                    scmGroup.plans.forEach(plan => {
+                        scmsData.push({
+                            scm: scmGroup.scm,
+                            plan: plan,
+                            unsupported_features: scmGroup.unsupported_features_by_plan[plan] || []
+                        });
+                    });
+                });
+                
+                console.log('Transformed SCMs data:', scmsData.length, 'entries');
                 console.log('First few SCMs:', scmsData.slice(0, 3));
                 populateSCMsReference();
                 populateSCMDropdown();
