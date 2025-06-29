@@ -1,0 +1,80 @@
+name: Deploy Competitive Intelligence Test
+
+on:
+  push:
+    branches: [ competitive-intelligence ]
+  workflow_dispatch:
+
+jobs:
+  deploy-competitive-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: competitive-test
+      url: https://kyle-semgrep.github.io/semgrep-feature-matrix-generator/
+
+    steps:
+    - name: Checkout competitive-intelligence branch
+      uses: actions/checkout@v4
+      with:
+        ref: competitive-intelligence
+        fetch-depth: 0
+
+    - name: Configure Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
+    - name: Check for existing github-pages-test branch
+      run: |
+        git fetch origin
+        if git show-ref --verify --quiet refs/remotes/origin/github-pages-test; then
+          echo "github-pages-test branch exists"
+          git checkout github-pages-test
+        else
+          echo "Creating new github-pages-test branch"
+          git checkout -b github-pages-test
+        fi
+
+    - name: Merge competitive-intelligence into test branch
+      run: |
+        echo "Merging latest changes from competitive-intelligence branch..."
+        git merge competitive-intelligence --no-edit || {
+          echo "Merge conflict detected, resolving by favoring competitive-intelligence branch..."
+          git checkout competitive-intelligence -- .
+          git add .
+          git commit -m "🧪 Auto-resolve: Use latest competitive intelligence features"
+        }
+
+    - name: Create test index with branch indicator
+      run: |
+        # Add a banner to indicate this is the test version
+        sed -i '/<body>/a\
+        <div style="background: #ff6b35; color: white; padding: 10px; text-align: center; font-weight: bold;">\
+        🧪 COMPETITIVE INTELLIGENCE TEST VERSION - Branch: competitive-intelligence\
+        </div>' index.html
+
+    - name: Generate test deployment summary
+      run: |
+        echo "## 🧪 Competitive Intelligence Test Deployment" >> $GITHUB_STEP_SUMMARY
+        echo "- **Source**: competitive-intelligence branch → github-pages-test branch" >> $GITHUB_STEP_SUMMARY
+        echo "- **Purpose**: Testing competitive intelligence features" >> $GITHUB_STEP_SUMMARY
+        echo "- **Test Site**: Will be available at GitHub Pages URL with test banner" >> $GITHUB_STEP_SUMMARY
+        echo "- **Timestamp**: $(date +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+    - name: Push to github-pages-test branch
+      run: |
+        git add .
+        git commit -m "🧪 Deploy competitive intelligence test - $(date +'%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+        git push origin github-pages-test
+
+    - name: Output test information
+      run: |
+        echo "## 🌐 Test Deployment Complete" >> $GITHUB_STEP_SUMMARY
+        echo "Your competitive intelligence test version has been deployed!" >> $GITHUB_STEP_SUMMARY
+        echo "**Test Branch**: github-pages-test" >> $GITHUB_STEP_SUMMARY
+        echo "**Visual Indicator**: Orange banner will show this is the test version" >> $GITHUB_STEP_SUMMARY
+        echo "**To activate**: You may need to configure GitHub Pages to use the github-pages-test branch in repository settings" >> $GITHUB_STEP_SUMMARY
