@@ -1,0 +1,220 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Competitor Data Schema",
+  "description": "Schema for competitive intelligence data with required source citations",
+  "type": "object",
+  "properties": {
+    "competitor_name": {
+      "type": "string",
+      "description": "Official name of the competitor"
+    },
+    "website": {
+      "type": "string",
+      "format": "uri",
+      "description": "Official website URL"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date",
+      "description": "Date when data was last updated (YYYY-MM-DD)"
+    },
+    "data_sources": {
+      "type": "array",
+      "description": "List of all sources used for data collection",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Source name"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Source URL"
+          },
+          "accessed_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Date when source was accessed"
+          }
+        },
+        "required": ["name", "url", "accessed_date"]
+      }
+    },
+    "sast_capabilities": {
+      "type": "object",
+      "description": "Static Application Security Testing capabilities",
+      "properties": {
+        "cross_file_dataflow": {
+          "type": "boolean",
+          "description": "Supports cross-file dataflow analysis"
+        },
+        "supported_languages": {
+          "type": "array",
+          "description": "Languages with SAST support",
+          "items": {
+            "type": "object",
+            "properties": {
+              "language": {
+                "type": "string",
+                "description": "Programming language name"
+              },
+              "support_level": {
+                "type": "string",
+                "enum": ["full", "basic", "limited", "none"],
+                "description": "Level of support for this language"
+              },
+              "cross_file_analysis": {
+                "type": "boolean",
+                "description": "Cross-file analysis support for this language"
+              },
+              "source_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Source URL for this language support info"
+              }
+            },
+            "required": ["language", "support_level", "cross_file_analysis", "source_url"]
+          }
+        }
+      },
+      "required": ["cross_file_dataflow", "supported_languages"]
+    },
+    "sca_capabilities": {
+      "type": "object",
+      "description": "Software Composition Analysis capabilities",
+      "properties": {
+        "reachability_analysis": {
+          "type": "boolean",
+          "description": "Supports reachability analysis for vulnerabilities"
+        },
+        "supported_package_managers": {
+          "type": "array",
+          "description": "Supported package managers",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package_manager": {
+                "type": "string",
+                "description": "Package manager name"
+              },
+              "reachability_support": {
+                "type": "boolean",
+                "description": "Reachability analysis support for this package manager"
+              },
+              "source_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Source URL for this package manager support info"
+              }
+            },
+            "required": ["package_manager", "reachability_support", "source_url"]
+          }
+        }
+      },
+      "required": ["reachability_analysis", "supported_package_managers"]
+    },
+    "secrets_capabilities": {
+      "type": "object",
+      "description": "Secrets detection and validation capabilities",
+      "properties": {
+        "secrets_detection": {
+          "type": "boolean",
+          "description": "Supports secrets detection"
+        },
+        "secrets_validation": {
+          "type": "boolean",
+          "description": "Supports secrets validation (checking if secrets are active)"
+        },
+        "supported_secret_types": {
+          "type": "array",
+          "description": "Types of secrets that can be detected",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Source URL for secrets capabilities info"
+        }
+      },
+      "required": ["secrets_detection", "secrets_validation", "source_url"]
+    },
+    "scm_support": {
+      "type": "object",
+      "description": "Source Code Management platform support",
+      "properties": {
+        "supported_platforms": {
+          "type": "array",
+          "description": "Supported SCM platforms",
+          "items": {
+            "type": "object",
+            "properties": {
+              "platform": {
+                "type": "string",
+                "description": "SCM platform name"
+              },
+              "support_level": {
+                "type": "string",
+                "enum": ["full", "basic", "limited", "none"],
+                "description": "Level of support for this platform"
+              },
+              "integration_type": {
+                "type": "array",
+                "description": "Types of integration available",
+                "items": {
+                  "type": "string",
+                  "enum": ["PR comments", "status checks", "webhooks", "API", "app", "plugin"]
+                }
+              },
+              "source_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Source URL for this platform support info"
+              }
+            },
+            "required": ["platform", "support_level", "integration_type", "source_url"]
+          }
+        }
+      },
+      "required": ["supported_platforms"]
+    },
+    "deployment_models": {
+      "type": "array",
+      "description": "Available deployment models",
+      "items": {
+        "type": "string",
+        "enum": ["cloud", "on-premise", "hybrid", "self-hosted"]
+      }
+    },
+    "key_differentiators": {
+      "type": "array",
+      "description": "Key competitive advantages",
+      "items": {
+        "type": "string"
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "description": "Known limitations or weaknesses",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "competitor_name",
+    "website", 
+    "last_updated",
+    "data_sources",
+    "sast_capabilities",
+    "sca_capabilities", 
+    "secrets_capabilities",
+    "scm_support",
+    "deployment_models",
+    "key_differentiators",
+    "limitations"
+  ]
+} 

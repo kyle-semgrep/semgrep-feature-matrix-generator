@@ -1,0 +1,219 @@
+{
+  "competitor_name": "GitHub Advanced Security",
+  "website": "https://github.com/security/advanced-security",
+  "last_updated": "2025-01-28",
+  "data_sources": [
+    {
+      "url": "https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security",
+      "title": "GitHub Advanced Security Documentation",
+      "accessed_date": "2025-01-28",
+      "description": "Official GitHub documentation on Advanced Security features"
+    },
+    {
+      "url": "https://github.com/security/advanced-security",
+      "title": "GitHub Advanced Security Homepage",
+      "accessed_date": "2025-01-28",
+      "description": "Official GitHub Advanced Security product page"
+    },
+    {
+      "url": "https://resources.github.com/evolving-github-advanced-security/",
+      "title": "Evolving GitHub Advanced Security: Greater flexibility, easier to access",
+      "accessed_date": "2025-01-28",
+      "description": "GitHub blog post on the evolution to Secret Protection and Code Security products"
+    }
+  ],
+  "business_overview": {
+    "description": "GitHub Advanced Security (now comprising GitHub Secret Protection and GitHub Code Security) provides native security features integrated directly into the GitHub platform, offering code scanning, secret scanning, dependency review, and security overview capabilities.",
+    "market_position": "Native GitHub security platform",
+    "primary_focus": "Integrated security for GitHub-native development workflows"
+  },
+  "products": {
+    "sast": {
+      "product_name": "GitHub Code Security (Code Scanning)",
+      "supported": true,
+      "cross_file_dataflow_analysis": {
+        "supported": true,
+        "description": "CodeQL provides sophisticated cross-file dataflow analysis and taint tracking",
+        "capabilities": [
+          "Cross-file taint analysis via CodeQL",
+          "Inter-procedural dataflow analysis",
+          "Complex vulnerability path detection",
+          "Custom CodeQL queries"
+        ]
+      },
+      "languages_supported": [
+        "C/C++",
+        "C#",
+        ".NET",
+        "Go",
+        "Java",
+        "Kotlin",
+        "JavaScript",
+        "TypeScript",
+        "Python",
+        "Ruby",
+        "Swift",
+        "Scala"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "Native GitHub integration",
+        "CodeQL analysis engine",
+        "Third-party SAST tool support",
+        "GitHub Copilot Autofix",
+        "Pull request integration"
+      ]
+    },
+    "sca": {
+      "product_name": "GitHub Code Security (Dependency Review)",
+      "supported": true,
+      "reachability_analysis": {
+        "supported": false,
+        "description": "Traditional dependency vulnerability scanning without reachability analysis",
+        "capabilities": [
+          "Dependency vulnerability detection",
+          "Dependabot alerts",
+          "Automated security updates",
+          "License detection"
+        ]
+      },
+      "languages_supported": [
+        "JavaScript",
+        "TypeScript",
+        "Python",
+        "Java",
+        "Kotlin",
+        "Scala",
+        "Ruby",
+        "Go",
+        "Rust",
+        "PHP",
+        "C#",
+        ".NET",
+        "Swift",
+        "Dart"
+      ],
+      "package_managers": [
+        "npm",
+        "Yarn",
+        "Maven",
+        "Gradle",
+        "pip",
+        "Poetry",
+        "RubyGems",
+        "Bundler",
+        "Go Modules",
+        "Cargo",
+        "Composer",
+        "NuGet",
+        "Swift Package Manager",
+        "Pub"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "Dependabot automated updates",
+        "Dependency graph visualization",
+        "Security advisories",
+        "License compliance",
+        "Pull request dependency review"
+      ]
+    },
+    "secrets": {
+      "product_name": "GitHub Secret Protection",
+      "supported": true,
+      "validation": {
+        "supported": true,
+        "description": "Advanced secret scanning with validation and push protection",
+        "capabilities": [
+          "Secret validation and verification",
+          "Push protection",
+          "Custom pattern detection",
+          "Copilot-powered secret scanning",
+          "Historical repository scanning"
+        ]
+      },
+      "detection_types": [
+        "API keys",
+        "Database credentials",
+        "Cloud service tokens",
+        "SSH keys",
+        "Custom patterns",
+        "Unstructured credentials (via Copilot)"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "Push protection (prevents commits)",
+        "Secret validation",
+        "Custom patterns",
+        "Copilot AI-powered detection",
+        "Native Git integration"
+      ]
+    }
+  },
+  "scm_support": {
+    "github": {
+      "supported": true,
+      "integration_type": "Native (first-party)",
+      "plans": ["GitHub.com", "GitHub Enterprise Server", "GitHub Enterprise Cloud"],
+      "features": [
+        "Native integration (no setup required)",
+        "Pull request checks",
+        "Branch protection rules",
+        "Security overview dashboard",
+        "Automated alerts and updates"
+      ]
+    },
+    "gitlab": {
+      "supported": false,
+      "integration_type": "Not applicable",
+      "plans": [],
+      "features": []
+    },
+    "bitbucket": {
+      "supported": false,
+      "integration_type": "Not applicable", 
+      "plans": [],
+      "features": []
+    },
+    "azure_devops": {
+      "supported": true,
+      "integration_type": "Available as separate product",
+      "plans": ["Azure DevOps Services", "Azure DevOps Server"],
+      "features": [
+        "GitHub Advanced Security for Azure DevOps",
+        "CodeQL analysis",
+        "Secret scanning",
+        "Dependency scanning"
+      ]
+    }
+  },
+  "deployment_options": [
+    "Cloud (GitHub.com)",
+    "On-premises (GitHub Enterprise Server)",
+    "Hybrid"
+  ],
+  "pricing_model": "Add-on subscription ($19/month Secret Protection, $30/month Code Security per active committer)",
+  "strengths": [
+    "Native GitHub integration (zero setup)",
+    "Strong CodeQL SAST engine with cross-file analysis",
+    "Excellent secret detection with validation",
+    "GitHub Copilot integration",
+    "No additional toolchain complexity",
+    "Strong push protection for secrets",
+    "Automated dependency updates"
+  ],
+  "weaknesses": [
+    "Limited to GitHub ecosystem",
+    "No reachability analysis for SCA",
+    "Fewer supported languages than specialized tools",
+    "Limited customization compared to standalone tools",
+    "Azure DevOps version has different feature set"
+  ],
+  "competitive_notes": [
+    "Unbeatable GitHub integration",
+    "Best choice for GitHub-native workflows",
+    "Strong for organizations standardized on GitHub",
+    "Limited cross-platform capabilities",
+    "Excellent for reducing tool sprawl"
+  ]
+} 

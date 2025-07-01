@@ -1,0 +1,206 @@
+{
+  "competitor_name": "Checkmarx",
+  "website": "https://checkmarx.com",
+  "last_updated": "2025-01-28",
+  "data_sources": [
+    {
+      "url": "https://checkmarx.com/",
+      "title": "Checkmarx Homepage",
+      "accessed_date": "2025-01-28",
+      "description": "Official website and product information"
+    }
+  ],
+  "business_overview": {
+    "description": "Checkmarx is a leading provider of application security testing solutions, specializing in static application security testing (SAST), software composition analysis (SCA), and other security scanning capabilities.",
+    "market_position": "Established enterprise security vendor",
+    "primary_focus": "Enterprise application security testing"
+  },
+  "products": {
+    "sast": {
+      "product_name": "Checkmarx SAST",
+      "supported": true,
+      "cross_file_dataflow_analysis": {
+        "supported": true,
+        "description": "Advanced dataflow analysis across files and functions",
+        "capabilities": [
+          "Cross-file taint analysis",
+          "Inter-procedural analysis",
+          "Complex dataflow tracking"
+        ]
+      },
+      "languages_supported": [
+        "Java",
+        "C#",
+        ".NET",
+        "JavaScript",
+        "TypeScript",
+        "Python",
+        "C/C++",
+        "PHP",
+        "Ruby",
+        "Scala",
+        "Kotlin",
+        "Go",
+        "Swift",
+        "Objective-C",
+        "VB.NET",
+        "ABAP",
+        "COBOL",
+        "RPG",
+        "PL/SQL"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "Comprehensive language support",
+        "Cross-file analysis",
+        "Enterprise scalability",
+        "Detailed vulnerability reporting"
+      ]
+    },
+    "sca": {
+      "product_name": "Checkmarx SCA",
+      "supported": true,
+      "reachability_analysis": {
+        "supported": true,
+        "description": "Analyzes if vulnerable code paths are actually reachable in your application",
+        "capabilities": [
+          "Reachability analysis for open source vulnerabilities",
+          "Transitive dependency analysis",
+          "Risk prioritization based on reachability"
+        ]
+      },
+      "languages_supported": [
+        "Java",
+        "JavaScript",
+        "TypeScript",
+        "Python",
+        "C#",
+        ".NET",
+        "Go",
+        "Ruby",
+        "PHP",
+        "C/C++",
+        "Scala",
+        "Kotlin"
+      ],
+      "package_managers": [
+        "npm",
+        "Maven",
+        "Gradle",
+        "NuGet",
+        "pip",
+        "Composer",
+        "Go Modules",
+        "RubyGems",
+        "CocoaPods",
+        "Cargo"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "Multi-language SCA",
+        "Reachability analysis",
+        "License compliance",
+        "SBOM generation"
+      ]
+    },
+    "secrets": {
+      "product_name": "Checkmarx Secrets Detection",
+      "supported": true,
+      "validation": {
+        "supported": true,
+        "description": "Validates detected secrets to reduce false positives",
+        "capabilities": [
+          "Real-time secret validation",
+          "API key verification",
+          "Custom pattern detection",
+          "Historical scanning"
+        ]
+      },
+      "detection_types": [
+        "API keys",
+        "Database credentials",
+        "Cloud service tokens",
+        "Certificates",
+        "Custom patterns"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "Secret validation",
+        "Custom patterns",
+        "Git history scanning",
+        "Pre-commit hooks"
+      ]
+    }
+  },
+  "scm_support": {
+    "github": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["GitHub.com", "GitHub Enterprise Server", "GitHub Enterprise Cloud"],
+      "features": [
+        "Pull request decoration",
+        "Branch analysis",
+        "Security gate enforcement",
+        "Automated scanning"
+      ]
+    },
+    "gitlab": {
+      "supported": true,
+      "integration_type": "Native integration", 
+      "plans": ["GitLab.com", "GitLab Self-Managed", "GitLab Dedicated"],
+      "features": [
+        "Merge request decoration",
+        "Pipeline integration",
+        "Security dashboard",
+        "Automated scanning"
+      ]
+    },
+    "bitbucket": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["Bitbucket Cloud", "Bitbucket Data Center"],
+      "features": [
+        "Pull request decoration",
+        "Pipeline integration",
+        "Branch analysis",
+        "Security reporting"
+      ]
+    },
+    "azure_devops": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["Azure DevOps Services", "Azure DevOps Server"],
+      "features": [
+        "Pull request decoration",
+        "Pipeline integration",
+        "Work item creation",
+        "Security dashboard"
+      ]
+    }
+  },
+  "deployment_options": [
+    "Cloud",
+    "On-premises",
+    "Hybrid"
+  ],
+  "pricing_model": "Enterprise licensing",
+  "strengths": [
+    "Comprehensive language support",
+    "Mature SAST capabilities", 
+    "Strong enterprise features",
+    "Cross-file dataflow analysis",
+    "Reachability analysis for SCA"
+  ],
+  "weaknesses": [
+    "High cost",
+    "Complex deployment",
+    "Learning curve",
+    "Can be resource intensive"
+  ],
+  "competitive_notes": [
+    "Strong in enterprise environments",
+    "Comprehensive security testing suite",
+    "Well-established in market",
+    "Good for large organizations with complex needs"
+  ]
+} 

@@ -1,0 +1,243 @@
+{
+  "competitor_name": "SonarQube",
+  "website": "https://www.sonarsource.com",
+  "last_updated": "2025-01-28",
+  "data_sources": [
+    {
+      "url": "https://www.sonarsource.com/solutions/security/",
+      "title": "SonarQube Advanced Security Solutions",
+      "accessed_date": "2025-01-28",
+      "description": "Official SonarSource security solutions page"
+    },
+    {
+      "url": "https://www.sonarsource.com/blog/sonarqube-advanced-security-now-available/",
+      "title": "SonarQube Advanced Security now available: Developer-first security for all code",
+      "accessed_date": "2025-01-28",
+      "description": "Official blog post announcing SonarQube Advanced Security GA"
+    },
+    {
+      "url": "https://docs.sonarsource.com/sonarqube-cloud/advanced-setup/languages/overview/",
+      "title": "SonarQube Cloud Supported Languages",
+      "accessed_date": "2025-01-28",
+      "description": "Official documentation on supported languages"
+    }
+  ],
+  "business_overview": {
+    "description": "SonarQube is a leading code quality and security platform that provides static analysis for code quality, security vulnerabilities, and code coverage. Recently expanded with Advanced Security add-on for SCA and advanced SAST capabilities.",
+    "market_position": "Code quality and security platform leader",
+    "primary_focus": "Integrated code quality and security with developer-first approach"
+  },
+  "products": {
+    "sast": {
+      "product_name": "SonarQube SAST + Advanced SAST",
+      "supported": true,
+      "cross_file_dataflow_analysis": {
+        "supported": true,
+        "description": "Advanced taint analysis and Advanced SAST extends analysis into third-party libraries",
+        "capabilities": [
+          "Cross-file taint analysis",
+          "Advanced SAST with library code analysis",
+          "External dependency-aware SAST",
+          "Framework-aware scanning",
+          "Cross-function and cross-file dataflow"
+        ]
+      },
+      "languages_supported": [
+        "ABAP",
+        "Ansible",
+        "Apex", 
+        "Azure Resource Manager",
+        "C/C++",
+        "Objective-C",
+        "CloudFormation",
+        "C#",
+        "COBOL",
+        "CSS",
+        "Dart",
+        "Docker",
+        "Flex",
+        "Go",
+        "HTML",
+        "Java",
+        "JavaScript",
+        "TypeScript",
+        "JCL",
+        "Kotlin",
+        "Kubernetes/Helm",
+        "PHP",
+        "PL/I",
+        "PL/SQL",
+        "Python",
+        "RPG",
+        "Ruby",
+        "Rust",
+        "Scala",
+        "Swift",
+        "Terraform",
+        "T-SQL",
+        "VB.NET",
+        "VB6",
+        "XML"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "30+ supported languages",
+        "Advanced SAST for library code analysis", 
+        "Taint analysis across files",
+        "IDE integration",
+        "Quality gates"
+      ]
+    },
+    "sca": {
+      "product_name": "SonarQube Advanced Security (SCA)",
+      "supported": true,
+      "reachability_analysis": {
+        "supported": false,
+        "description": "Traditional SCA without reachability analysis (part of Advanced Security add-on)",
+        "capabilities": [
+          "Vulnerability identification in dependencies",
+          "License compliance",
+          "SBOM generation",
+          "Transitive dependency analysis"
+        ]
+      },
+      "languages_supported": [
+        "Java",
+        "Kotlin",
+        "Scala",
+        "JavaScript",
+        "TypeScript",
+        "Python",
+        "C#",
+        ".NET",
+        "Go",
+        "Rust",
+        "Ruby"
+      ],
+      "package_managers": [
+        "Maven",
+        "Gradle",
+        "npm",
+        "Yarn",
+        "pip",
+        "Poetry",
+        "NuGet",
+        "Go Modules",
+        "Cargo",
+        "RubyGems"
+      ],
+      "maturity": "New (GA in 2025)",
+      "key_features": [
+        "Vulnerability detection",
+        "License compliance",
+        "SBOM generation (CycloneDX, SPDX)",
+        "Curated intelligence from Tidelift",
+        "False positive verification"
+      ]
+    },
+    "secrets": {
+      "product_name": "SonarQube Secrets Detection",
+      "supported": true,
+      "validation": {
+        "supported": false,
+        "description": "Pattern-based secrets detection without validation",
+        "capabilities": [
+          "300+ secret patterns",
+          "Custom pattern detection (Enterprise)",
+          "Regular expressions and semantic analysis",
+          "IDE detection"
+        ]
+      },
+      "detection_types": [
+        "API keys",
+        "Passwords",
+        "Tokens",
+        "Database credentials",
+        "Custom patterns"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "300+ built-in patterns",
+        "Custom patterns (Enterprise)",
+        "IDE integration",
+        "Semantic analysis"
+      ]
+    }
+  },
+  "scm_support": {
+    "github": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["GitHub.com", "GitHub Enterprise Server", "GitHub Enterprise Cloud"],
+      "features": [
+        "Pull request decoration",
+        "Branch analysis",
+        "Quality gate enforcement",
+        "Automated scanning"
+      ]
+    },
+    "gitlab": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["GitLab.com", "GitLab Self-Managed", "GitLab Dedicated"],
+      "features": [
+        "Merge request decoration",
+        "Pipeline integration", 
+        "Quality gate enforcement",
+        "Branch analysis"
+      ]
+    },
+    "bitbucket": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["Bitbucket Cloud", "Bitbucket Data Center/Server"],
+      "features": [
+        "Pull request decoration",
+        "Pipeline integration",
+        "Branch analysis",
+        "Quality gates"
+      ]
+    },
+    "azure_devops": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["Azure DevOps Services", "Azure DevOps Server"],
+      "features": [
+        "Pull request decoration",
+        "Pipeline integration",
+        "Branch analysis",
+        "Quality gate enforcement"
+      ]
+    }
+  },
+  "deployment_options": [
+    "Cloud (SonarQube Cloud)",
+    "Self-managed (SonarQube Server)",
+    "On-premises",
+    "Hybrid"
+  ],
+  "pricing_model": "Freemium with Enterprise editions, Advanced Security as add-on",
+  "strengths": [
+    "Industry-leading language support (30+ languages)",
+    "Integrated code quality and security",
+    "Advanced SAST with library code analysis",
+    "Strong developer adoption and community",
+    "Comprehensive platform approach",
+    "Strong IDE integration",
+    "Quality gates for governance"
+  ],
+  "weaknesses": [
+    "SCA capabilities are newer (Advanced Security add-on)",
+    "No reachability analysis for SCA",
+    "No secret validation",
+    "Advanced Security requires additional licensing",
+    "Can be complex for small teams"
+  ],
+  "competitive_notes": [
+    "Strong in code quality + security integration",
+    "Best-in-class language support",
+    "Good for organizations wanting unified quality/security",
+    "Advanced SAST capabilities with library analysis",
+    "Strong in enterprise environments with quality focus"
+  ]
+} 

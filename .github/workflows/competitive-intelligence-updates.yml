@@ -1,0 +1,161 @@
+name: Competitive Intelligence Updates
+
+on:
+  schedule:
+    # Run daily at 7 AM UTC to update competitive intelligence data
+    - cron: '0 7 * * *'
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  update-competitive-intelligence:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        
+    - name: Update competitor data
+      run: |
+        echo "🔍 Starting competitive intelligence update..."
+        python enrich_competitors_with_latest_data.py
+        
+    - name: Check for changes
+      id: check-changes
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "changes=true" >> $GITHUB_OUTPUT
+          echo "Changes detected in competitive intelligence data"
+        else
+          echo "changes=false" >> $GITHUB_OUTPUT
+          echo "No changes detected"
+        fi
+        
+    - name: Commit and push changes
+      if: steps.check-changes.outputs.changes == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Add all changed files
+        git add competitors/
+        git add competitive_intelligence_report_*.md
+        
+        # Create commit with details
+        TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S UTC')
+        git commit -m "🔍 Automated competitive intelligence update
+        
+        📊 Updated competitor data and analysis
+        🕐 Generated on: $TIMESTAMP
+        🤖 Automated via GitHub Actions
+        
+        This update includes the latest competitive intelligence data
+        and any changes detected in competitor capabilities or features."
+        
+        # Push changes
+        git push
+        
+    - name: Create notification issue for significant changes
+      if: steps.check-changes.outputs.changes == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          // Read the latest competitive intelligence report
+          const fs = require('fs');
+          const glob = require('@actions/glob');
+          
+          const globber = await glob.create('competitive_intelligence_report_*.md');
+          const files = await globber.glob();
+          
+          if (files.length === 0) {
+            console.log('No competitive intelligence report found');
+            return;
+          }
+          
+          // Get the most recent report
+          const latestReport = files.sort().pop();
+          const reportContent = fs.readFileSync(latestReport, 'utf8');
+          
+          // Extract summary information
+          const lines = reportContent.split('\n');
+          const summaryLines = lines.filter(line => 
+            line.includes('Total Changes Detected') || 
+            line.includes('Competitors Checked') ||
+            line.includes('Timestamp')
+          );
+          
+          const summaryText = summaryLines.join('\n');
+          
+          // Create issue
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '🔍 Competitive Intelligence Update - Changes Detected',
+            body: `## 📊 Competitive Intelligence Changes Detected
+            
+            **Automated Update Summary:**
+            ${summaryText}
+            
+            ### 📋 Details
+            A scheduled competitive intelligence update has detected changes in competitor data. 
+            
+            **What happened:**
+            - ✅ Competitor websites and documentation were scanned
+            - 📊 Changes were detected and data was updated
+            - 🤖 This update was performed automatically via GitHub Actions
+            
+            **Next Steps:**
+            1. 📖 Review the full report: [Latest Competitive Intelligence Report](${latestReport})
+            2. 🔍 Check the updated competitor data files in the \`competitors/\` directory
+            3. 📈 Consider updating sales materials if significant changes were detected
+            4. 🎯 Review any new competitive positioning opportunities
+            
+            ### 🎯 Key Focus Areas Updated
+            - SAST cross-file dataflow analysis capabilities
+            - SCA reachability analysis features  
+            - Secrets validation capabilities
+            - Language and SCM support matrices
+            
+            **Data Sources:** All information sourced from public competitor documentation and websites.
+            
+            ---
+            *This issue was created automatically by the competitive intelligence update workflow.*`,
+            labels: ['competitive-intelligence', 'automated', 'sales-enablement']
+          });
+    
+    - name: Create workflow summary
+      run: |
+        echo "## 🔍 Competitive Intelligence Update Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Competitors Checked**: 6 major security vendors" >> $GITHUB_STEP_SUMMARY
+        echo "- **Focus Areas**: SAST, SCA, Secrets, Language Support" >> $GITHUB_STEP_SUMMARY
+        echo "- **Data Sources**: Public documentation and websites" >> $GITHUB_STEP_SUMMARY
+        echo "- **Timestamp**: $(date +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ steps.check-changes.outputs.changes }}" == "true" ]; then
+          echo "- **Status**: ✅ Changes detected and committed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Notification**: 📬 Issue created for review" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- **Status**: ℹ️ No changes detected" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🎯 Competitive Analysis Ready" >> $GITHUB_STEP_SUMMARY
+        echo "The competitive intelligence platform is updated and ready for:" >> $GITHUB_STEP_SUMMARY
+        echo "- 🥊 Head-to-head competitor comparisons" >> $GITHUB_STEP_SUMMARY
+        echo "- 🎯 Sales talking points generation" >> $GITHUB_STEP_SUMMARY
+        echo "- 📊 Feature capability matrices" >> $GITHUB_STEP_SUMMARY
+        echo "- 📚 Sourced competitive intelligence" >> $GITHUB_STEP_SUMMARY 

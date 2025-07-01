@@ -1,0 +1,229 @@
+{
+  "competitor_name": "Snyk",
+  "website": "https://snyk.io",
+  "last_updated": "2025-01-28",
+  "data_sources": [
+    {
+      "url": "https://docs.snyk.io/supported-languages-package-managers-and-frameworks",
+      "title": "Snyk Supported Languages Documentation",
+      "accessed_date": "2025-01-28",
+      "description": "Official Snyk documentation on supported languages and capabilities"
+    },
+    {
+      "url": "https://snyk.io/blog/snyk-code-secures-ai-builds/",
+      "title": "Snyk Code AI Build Security Blog Post",
+      "accessed_date": "2025-01-28",
+      "description": "Blog post about Snyk Code securing AI builds with LLM sources"
+    }
+  ],
+  "business_overview": {
+    "description": "Snyk is a developer security platform that enables teams to easily find, prioritize, and fix security vulnerabilities in code, dependencies, containers, and cloud configurations. Known for strong SCA capabilities and developer-friendly approach.",
+    "market_position": "Developer-first security platform leader",
+    "primary_focus": "Developer security platform with strong open source focus"
+  },
+  "products": {
+    "sast": {
+      "product_name": "Snyk Code",
+      "supported": true,
+      "cross_file_dataflow_analysis": {
+        "supported": true,
+        "description": "Interfile analysis available for all supported languages except Ruby",
+        "capabilities": [
+          "Cross-file taint analysis",
+          "DeepCode AI engine",
+          "Custom rules with datalog-based query language",
+          "LLM source tracking for AI-generated code"
+        ]
+      },
+      "languages_supported": [
+        "Apex",
+        "C/C++",
+        "Go",
+        "Groovy",
+        "Java",
+        "Kotlin",
+        "JavaScript",
+        "TypeScript",
+        ".NET",
+        "C#",
+        "PHP",
+        "Python", 
+        "Ruby",
+        "Scala",
+        "Swift",
+        "Objective-C",
+        "VB.NET"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "AI-powered analysis with DeepCode AI",
+        "Developer-friendly interface",
+        "Custom rule creation",
+        "LLM source security for AI-generated code",
+        "Interfile analysis (except Ruby)"
+      ]
+    },
+    "sca": {
+      "product_name": "Snyk Open Source",
+      "supported": true,
+      "reachability_analysis": {
+        "supported": true,
+        "description": "Reachability analysis to determine if vulnerable code is actually used",
+        "capabilities": [
+          "Reachability analysis for vulnerabilities",
+          "Transitive dependency analysis",
+          "Risk prioritization",
+          "License compliance"
+        ]
+      },
+      "languages_supported": [
+        "C/C++",
+        "Dart",
+        "Flutter",
+        "Elixir",
+        "Go",
+        "Java",
+        "Kotlin",
+        "JavaScript",
+        "TypeScript",
+        ".NET",
+        "C#",
+        "PHP",
+        "Python",
+        "Ruby",
+        "Rust",
+        "Scala",
+        "Swift",
+        "Objective-C"
+      ],
+      "package_managers": [
+        "npm",
+        "Yarn",
+        "Maven",
+        "Gradle",
+        "sbt",
+        "NuGet",
+        "pip",
+        "Poetry",
+        "Composer",
+        "Go Modules",
+        "RubyGems",
+        "Bundler",
+        "Cargo",
+        "CocoaPods",
+        "Swift Package Manager"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "Industry-leading SCA platform",
+        "Reachability analysis",
+        "License compliance",
+        "Vulnerability database",
+        "Fix recommendations"
+      ]
+    },
+    "secrets": {
+      "product_name": "Snyk Code Secrets Detection",
+      "supported": true,
+      "validation": {
+        "supported": false,
+        "description": "Pattern-based secrets detection without validation",
+        "capabilities": [
+          "Pattern-based secret detection",
+          "Custom pattern support",
+          "Git history scanning",
+          "Real-time scanning"
+        ]
+      },
+      "detection_types": [
+        "API keys",
+        "Database credentials",
+        "Cloud tokens",
+        "Generic secrets",
+        "Custom patterns"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "Integrated with code scanning",
+        "Custom patterns",
+        "Historical scanning",
+        "IDE integration"
+      ]
+    }
+  },
+  "scm_support": {
+    "github": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["GitHub.com", "GitHub Enterprise Server", "GitHub Enterprise Cloud"],
+      "features": [
+        "Pull request checks",
+        "Branch analysis",
+        "Security gate enforcement",
+        "Automated fix PRs",
+        "Dependency upgrade PRs"
+      ]
+    },
+    "gitlab": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["GitLab.com", "GitLab Self-Managed", "GitLab Dedicated"],
+      "features": [
+        "Merge request decoration",
+        "Pipeline integration",
+        "Security dashboard",
+        "Automated scanning"
+      ]
+    },
+    "bitbucket": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["Bitbucket Cloud", "Bitbucket Data Center/Server"],
+      "features": [
+        "Pull request decoration",
+        "Pipeline integration",
+        "Branch analysis",
+        "Security reporting"
+      ]
+    },
+    "azure_devops": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["Azure DevOps Services", "Azure DevOps Server"],
+      "features": [
+        "Pull request decoration",
+        "Pipeline integration",
+        "Work item creation",
+        "Security dashboard"
+      ]
+    }
+  },
+  "deployment_options": [
+    "Cloud",
+    "On-premises (Snyk Enterprise)",
+    "Hybrid"
+  ],
+  "pricing_model": "Freemium with paid tiers",
+  "strengths": [
+    "Developer-first approach",
+    "Industry-leading SCA capabilities",
+    "Strong open source focus",
+    "Reachability analysis",
+    "AI-powered code analysis",
+    "Active vulnerability database",
+    "Strong community and ecosystem"
+  ],
+  "weaknesses": [
+    "SAST capabilities newer compared to traditional vendors",
+    "Limited secret validation capabilities",
+    "Can be expensive at scale",
+    "Some advanced features require higher tiers"
+  ],
+  "competitive_notes": [
+    "Strong in developer adoption",
+    "Leading SCA platform",
+    "Good balance of features and usability",
+    "Strong in cloud-native environments",
+    "Excellent for organizations prioritizing open source security"
+  ]
+} 

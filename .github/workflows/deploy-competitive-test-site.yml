@@ -1,0 +1,364 @@
+name: Deploy Competitive Intelligence Test Site
+
+on:
+  push:
+    branches: [ competitive-intelligence ]
+    paths:
+      - 'competitors/**'
+      - 'competitive_*.py'
+      - '.github/workflows/deploy-competitive-test-site.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy-test-site:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    steps:
+    - name: Checkout competitive-intelligence branch
+      uses: actions/checkout@v4
+      with:
+        ref: competitive-intelligence
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Generate static competitive intelligence site
+      run: |
+        echo "🏗️ Building competitive intelligence test site..."
+        
+        # Create a static version of the competitive intelligence site
+        mkdir -p test-site
+        
+        # Copy necessary files
+        cp -r competitors/ test-site/
+        cp competitive_analysis.py test-site/
+        cp competitive_web_interface.py test-site/
+        cp languages.json test-site/ 2>/dev/null || echo "languages.json not found, using fallback"
+        cp scms.json test-site/ 2>/dev/null || echo "scms.json not found, using fallback"
+        
+        # Generate a static HTML version for GitHub Pages
+        cat > test-site/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Semgrep Competitive Intelligence Test Site</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+                body {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    line-height: 1.6;
+                    margin: 0;
+                    padding: 20px;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    background-color: #f8f9fa;
+                }
+                .container {
+                    background: white;
+                    padding: 30px;
+                    border-radius: 10px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                }
+                h1 {
+                    color: #0974d7;
+                    border-bottom: 2px solid #0974d7;
+                    padding-bottom: 10px;
+                }
+                .feature-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                    gap: 20px;
+                    margin-top: 20px;
+                }
+                .feature-card {
+                    background: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 8px;
+                    border-left: 4px solid #0974d7;
+                }
+                .feature-card h3 {
+                    margin-top: 0;
+                    color: #0974d7;
+                }
+                .status-badge {
+                    display: inline-block;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 0.8em;
+                    font-weight: bold;
+                    text-transform: uppercase;
+                }
+                .implemented { background: #d4edda; color: #155724; }
+                .testing { background: #fff3cd; color: #856404; }
+                .planned { background: #f8d7da; color: #721c24; }
+                .competitor-list {
+                    background: #e8f4fd;
+                    padding: 15px;
+                    border-radius: 6px;
+                    margin: 20px 0;
+                }
+                .demo-link {
+                    display: inline-block;
+                    background: #0974d7;
+                    color: white;
+                    padding: 10px 20px;
+                    text-decoration: none;
+                    border-radius: 4px;
+                    margin: 10px 10px 10px 0;
+                }
+                .demo-link:hover {
+                    background: #0757a0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Semgrep_logo.svg" 
+                         alt="Semgrep" style="height: 32px; vertical-align: middle; margin-right: 10px;">
+                    Competitive Intelligence Test Site
+                </h1>
+                
+                <p><strong>🧪 Test Environment:</strong> This is a preview of the competitive intelligence features before they are merged into production.</p>
+                
+                <div class="competitor-list">
+                    <h3>📊 Available Competitors</h3>
+                    <ul>
+                        <li><strong>Checkmarx</strong> - Enterprise SAST/SCA platform</li>
+                        <li><strong>Veracode</strong> - Cloud-native application security</li>
+                        <li><strong>Snyk</strong> - Developer-first security platform</li>
+                        <li><strong>GitHub Advanced Security</strong> - Native GitHub security</li>
+                        <li><strong>SonarQube</strong> - Code quality and security platform</li>
+                        <li><strong>Endor Labs</strong> - Reachability-based security analysis</li>
+                    </ul>
+                </div>
+                
+                <h2>🚀 Features</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>🥊 Head-to-Head Comparisons</h3>
+                        <span class="status-badge implemented">Implemented</span>
+                        <p>Side-by-side capability comparisons focusing on:</p>
+                        <ul>
+                            <li>SAST cross-file dataflow analysis</li>
+                            <li>SCA reachability analysis</li>
+                            <li>Secrets validation</li>
+                            <li>Language and SCM support</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>🎯 Sales Talking Points</h3>
+                        <span class="status-badge implemented">Implemented</span>
+                        <p>Automatically generated sales enablement content:</p>
+                        <ul>
+                            <li>Competitive advantages</li>
+                            <li>Positioning strategies</li>
+                            <li>Technical differentiators</li>
+                            <li>Response to competitor strengths</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>📚 Source Citations</h3>
+                        <span class="status-badge implemented">Implemented</span>
+                        <p>All competitive intelligence properly sourced:</p>
+                        <ul>
+                            <li>Official documentation links</li>
+                            <li>Public website information</li>
+                            <li>Transparent data collection</li>
+                            <li>Regular updates with change tracking</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>🤖 Automated Updates</h3>
+                        <span class="status-badge implemented">Implemented</span>
+                        <p>Daily competitive intelligence updates:</p>
+                        <ul>
+                            <li>Automated data collection</li>
+                            <li>Change detection and reporting</li>
+                            <li>GitHub Issues for notifications</li>
+                            <li>Audit trail of all changes</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h2>🌐 Test the Platform</h2>
+                <p><strong>Note:</strong> The full interactive platform requires a Python Flask server. The features shown here are static previews.</p>
+                
+                <a href="#" class="demo-link" onclick="alert('This would launch the competitive intelligence web interface with full functionality.')">🔍 Launch Competitive Analysis Tool</a>
+                <a href="#" class="demo-link" onclick="alert('This would show the automated update reports and change history.')">📊 View Update Reports</a>
+                
+                <h2>📋 Implementation Status</h2>
+                <ul>
+                    <li>✅ <strong>Competitor Data Structure:</strong> JSON-based competitor profiles</li>
+                    <li>✅ <strong>Analysis Engine:</strong> Python-based comparison logic</li>
+                    <li>✅ <strong>Web Interface:</strong> Flask-based interactive UI</li>
+                    <li>✅ <strong>Automated Updates:</strong> GitHub Actions workflows</li>
+                    <li>✅ <strong>Change Notifications:</strong> Issue-based reporting</li>
+                    <li>✅ <strong>Source Citations:</strong> Transparent data sourcing</li>
+                </ul>
+                
+                <h2>🎯 Focus Areas</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>SAST Cross-file Dataflow</h3>
+                        <p>Comparing advanced static analysis capabilities across competitors, focusing on dataflow analysis that spans multiple files and functions.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>SCA Reachability Analysis</h3>
+                        <p>Evaluating which competitors offer reachability analysis to determine if vulnerable code paths are actually used in applications.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>Secrets Validation</h3>
+                        <p>Assessing secret detection capabilities, particularly validation features that verify if detected secrets are actually valid.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>Language & SCM Support</h3>
+                        <p>Comprehensive comparison of programming language support and source code management platform integrations.</p>
+                    </div>
+                </div>
+                
+                <hr style="margin: 30px 0;">
+                <p><em>🧪 This is a test deployment of the competitive intelligence features. 
+                When ready, these features will be integrated into the main Feature Matrix Generator.</em></p>
+                
+                <p><strong>Last Updated:</strong> <span id="timestamp"></span></p>
+                
+                <script>
+                    document.getElementById('timestamp').textContent = new Date().toLocaleString();
+                </script>
+            </div>
+        </body>
+        </html>
+        EOF
+        
+        # Create a simple status page
+        cat > test-site/status.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Competitive Intelligence Status</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+                .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                h1 { color: #0974d7; }
+                .status-item { padding: 10px; margin: 10px 0; border-radius: 4px; }
+                .status-ok { background: #d4edda; color: #155724; }
+                .status-warning { background: #fff3cd; color: #856404; }
+                .competitors { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px; }
+                .competitor-card { background: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid #0974d7; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🔍 Competitive Intelligence Status</h1>
+                
+                <div class="status-item status-ok">
+                    ✅ Competitive Analysis Engine: Ready
+                </div>
+                <div class="status-item status-ok">
+                    ✅ Competitor Data: 6 competitors loaded
+                </div>
+                <div class="status-item status-ok">
+                    ✅ Automated Updates: Scheduled daily
+                </div>
+                <div class="status-item status-ok">
+                    ✅ Source Citations: Implemented
+                </div>
+                
+                <h2>📊 Competitor Coverage</h2>
+                <div class="competitors">
+                    <div class="competitor-card">
+                        <h4>Checkmarx</h4>
+                        <p>Enterprise SAST/SCA platform with comprehensive language support and mature security features.</p>
+                    </div>
+                    <div class="competitor-card">
+                        <h4>Veracode</h4>
+                        <p>Cloud-native application security platform with strong enterprise adoption and compliance features.</p>
+                    </div>
+                    <div class="competitor-card">
+                        <h4>Snyk</h4>
+                        <p>Developer-first security platform with leading SCA capabilities and strong open source focus.</p>
+                    </div>
+                    <div class="competitor-card">
+                        <h4>GitHub Advanced Security</h4>
+                        <p>Native GitHub security features with CodeQL SAST engine and integrated workflow.</p>
+                    </div>
+                    <div class="competitor-card">
+                        <h4>SonarQube</h4>
+                        <p>Code quality and security platform with extensive language support and developer adoption.</p>
+                    </div>
+                    <div class="competitor-card">
+                        <h4>Endor Labs</h4>
+                        <p>Next-generation platform focused on reachability-based analysis and noise reduction.</p>
+                    </div>
+                </div>
+                
+                <h2>🎯 Key Capabilities Tracked</h2>
+                <ul>
+                    <li><strong>SAST Cross-file Dataflow Analysis:</strong> Advanced static analysis across file boundaries</li>
+                    <li><strong>SCA Reachability Analysis:</strong> Determining if vulnerable code is actually reachable</li>
+                    <li><strong>Secrets Validation:</strong> Validating detected secrets to reduce false positives</li>
+                    <li><strong>Language Support:</strong> Programming language coverage and maturity</li>
+                    <li><strong>SCM Integration:</strong> Source code management platform support</li>
+                </ul>
+                
+                <p><strong>Build Time:</strong> <span id="build-time"></span></p>
+                <script>
+                    document.getElementById('build-time').textContent = new Date().toISOString();
+                </script>
+            </div>
+        </body>
+        </html>
+        EOF
+
+    - name: Upload test site artifacts
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: test-site
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+
+    - name: Create deployment summary
+      run: |
+        echo "## 🧪 Competitive Intelligence Test Site Deployed" >> $GITHUB_STEP_SUMMARY
+        echo "The competitive intelligence features have been deployed to a test GitHub Pages site for review." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🌐 Test Site Links" >> $GITHUB_STEP_SUMMARY
+        echo "- **Main Test Page**: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Status Page**: ${{ steps.deployment.outputs.page_url }}status.html" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📊 Features Available for Testing" >> $GITHUB_STEP_SUMMARY
+        echo "- 🥊 Competitive analysis comparisons" >> $GITHUB_STEP_SUMMARY
+        echo "- 🎯 Sales talking points generation" >> $GITHUB_STEP_SUMMARY
+        echo "- 📚 Source citations and documentation" >> $GITHUB_STEP_SUMMARY
+        echo "- 🤖 Automated competitive intelligence updates" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔍 Competitors Included" >> $GITHUB_STEP_SUMMARY
+        echo "1. Checkmarx - Enterprise SAST/SCA platform" >> $GITHUB_STEP_SUMMARY
+        echo "2. Veracode - Cloud-native application security" >> $GITHUB_STEP_SUMMARY
+        echo "3. Snyk - Developer-first security platform" >> $GITHUB_STEP_SUMMARY
+        echo "4. GitHub Advanced Security - Native GitHub security" >> $GITHUB_STEP_SUMMARY
+        echo "5. SonarQube - Code quality and security platform" >> $GITHUB_STEP_SUMMARY
+        echo "6. Endor Labs - Reachability-based security analysis" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Note**: This is a static preview. Full interactive functionality requires running the Python Flask application." >> $GITHUB_STEP_SUMMARY 
