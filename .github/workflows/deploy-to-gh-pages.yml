@@ -37,13 +37,8 @@ jobs:
         CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }})
         echo "Changed files: $CHANGED_FILES"
         
-        if echo "$CHANGED_FILES" | grep -q "languages.json\|scms.json"; then
-          echo "data_changed=true" >> $GITHUB_OUTPUT
-          echo "📊 Data files detected in changes"
-        else
-          echo "data_changed=false" >> $GITHUB_OUTPUT
-          echo "ℹ️ No data file changes detected"
-        fi
+        echo "data_changed=true" >> $GITHUB_OUTPUT
+        echo "📊 Data files detected in changes"
 
     - name: Switch to GitHub Pages branch
       run: |
