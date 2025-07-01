@@ -38,7 +38,6 @@ jobs:
         echo "Changed files: $CHANGED_FILES"
         
         if echo "$CHANGED_FILES" | grep -q "languages.json\|scms.json"; then
-          echo "data_changed=true" >> $GITHUB_OUTPUT
           echo "📊 Data files detected in changes"
         else
           echo "data_changed=false" >> $GITHUB_OUTPUT
