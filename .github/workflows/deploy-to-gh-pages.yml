@@ -37,13 +37,13 @@ jobs:
         CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }})
         echo "Changed files: $CHANGED_FILES"
         
-        if echo "$CHANGED_FILES" | grep -q "languages.json\|scms.json"; then
-          echo "📊 Data files detected in changes"
+        if echo "$CHANGED_FILES" | grep -vq "^.github/workflows/"; then
+          echo "data_changed=true" >> $GITHUB_OUTPUT
+          echo "📊 Non-workflow file changes detected"
         else
           echo "data_changed=false" >> $GITHUB_OUTPUT
-          echo "ℹ️ No data file changes detected"
+          echo "ℹ️ Only workflow file changes detected"
         fi
-
     - name: Switch to GitHub Pages branch
       run: |
         git checkout github-pages || git checkout -b github-pages
