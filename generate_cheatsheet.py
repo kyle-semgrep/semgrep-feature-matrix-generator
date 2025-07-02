@@ -575,6 +575,10 @@ def save_matrix_as_html(matrix: Dict[str, Any], output_file: str) -> None:
     </head>
     <body>
         <h1>Semgrep Compatibility Matrix</h1>
+        <div style="margin-bottom: 18px; font-size: 1.1em;">
+          <a href=\"https://semgrep.dev/docs/semgrep/languages/\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"margin-right: 18px; color: #0974d7; font-weight: bold; text-decoration: underline;\">Supported Languages</a>
+          <a href=\"https://semgrep.dev/docs/integrations/scm/\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color: #0974d7; font-weight: bold; text-decoration: underline;\">SCM Integrations</a>
+        </div>
         <p>Customer: {matrix["customer_name"]}</p>
         <p>Generated on: {matrix["generated_at"]}</p>
         
