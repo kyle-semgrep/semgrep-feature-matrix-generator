@@ -3,11 +3,6 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'languages.json'
-      - 'scms.json'
-      - 'index.html'
-      - 'web_interface.py'
   workflow_dispatch:
 
 jobs:
