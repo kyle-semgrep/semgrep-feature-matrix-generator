@@ -59,7 +59,6 @@ jobs:
     - name: Generate static HTML
       run: |
         python generate.py --customer "Demo Customer" --languages "python,java,javascript" --scms "github,gitlab" --html --output index
-        mv index.html index.html
 
     - name: Push to GitHub Pages
       run: |
