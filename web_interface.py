@@ -307,6 +307,10 @@ HTML_TEMPLATE = """
 <body>
     <div class="container">
     <h1><img src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Semgrep_logo.svg" alt="Semgrep" style="height: 32px; vertical-align: middle; margin-right: 10px;">Requirements Matrix Generator</h1>
+    <div style="margin-bottom: 18px; font-size: 1.1em;">
+      <a href="https://semgrep.dev/docs/semgrep/languages/" target="_blank" rel="noopener noreferrer" style="margin-right: 18px; color: #0974d7; font-weight: bold; text-decoration: underline;">Supported Languages</a>
+      <a href="https://semgrep.dev/docs/integrations/scm/" target="_blank" rel="noopener noreferrer" style="color: #0974d7; font-weight: bold; text-decoration: underline;">SCM Integrations</a>
+    </div>
     
     <div class="alert-info">
       <strong>Data Source Transparency:</strong>
