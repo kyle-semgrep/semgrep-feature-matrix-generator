@@ -64,6 +64,14 @@ jobs:
         echo "- **Timestamp**: $(date +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
         if [ "${{ steps.verify-changed-files.outputs.changed }}" == "true" ]; then
           echo "- **Status**: ✅ Changes committed and pushed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Next**: 🚀 GitHub Pages deployment will auto-trigger" >> $GITHUB_STEP_SUMMARY
         else
           echo "- **Status**: ℹ️ No changes detected" >> $GITHUB_STEP_SUMMARY
-        fi 
+        fi
+        
+    - name: Trigger GitHub Pages deployment
+      if: steps.verify-changed-files.outputs.changed == 'true'
+      run: |
+        echo "✅ Data updates pushed to main branch"
+        echo "🚀 GitHub Pages deployment will start automatically"
+        echo "📊 Live site will be updated in 2-3 minutes" 

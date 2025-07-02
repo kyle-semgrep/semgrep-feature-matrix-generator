@@ -64,15 +64,35 @@ jobs:
         new_scms = load_json('scms.json')
         
         significant_changes = []
+        detailed_changes = []
         
         # Check for new languages
-        if isinstance(old_langs, dict) and isinstance(new_langs, dict):
-            old_lang_names = set(old_langs.keys()) if old_langs else set()
-            new_lang_names = set(new_langs.keys()) if new_langs else set()
+        if isinstance(old_langs, list) and isinstance(new_langs, list):
+            old_lang_names = {lang.get('language', '') for lang in old_langs}
+            new_lang_names = {lang.get('language', '') for lang in new_langs}
             new_languages = new_lang_names - old_lang_names
             
             if new_languages:
                 significant_changes.append(f"🆕 New languages added: {', '.join(new_languages)}")
+                detailed_changes.extend([f"Added {lang}" for lang in new_languages])
+        
+        # Check for Pro rules increases (significant if >50% increase or >100 rule increase)
+        if isinstance(old_langs, list) and isinstance(new_langs, list):
+            old_lang_dict = {lang.get('language', ''): lang for lang in old_langs}
+            new_lang_dict = {lang.get('language', ''): lang for lang in new_langs}
+            
+            for lang_name in old_lang_dict:
+                if lang_name in new_lang_dict:
+                    old_rules = old_lang_dict[lang_name].get('semgrep_docs', {}).get('pro_rules', 0)
+                    new_rules = new_lang_dict[lang_name].get('semgrep_docs', {}).get('pro_rules', 0)
+                    
+                    if old_rules > 0 and new_rules > old_rules:
+                        increase = new_rules - old_rules
+                        percent_increase = (increase / old_rules) * 100
+                        
+                        if increase >= 100 or percent_increase >= 50:
+                            significant_changes.append(f"📈 {lang_name}: +{increase} Pro rules ({old_rules}→{new_rules})")
+                            detailed_changes.append(f"{lang_name}: {old_rules} → {new_rules} Pro rules (+{increase})")
         
         # Check for SCM changes
         if isinstance(old_scms, dict) and isinstance(new_scms, dict):
@@ -82,15 +102,18 @@ jobs:
                     new_plans = new_scms[scm_name].get('plans', {})
                     if old_plans != new_plans:
                         significant_changes.append(f"🔄 {scm_name} features updated")
+                        detailed_changes.append(f"{scm_name} integration capabilities changed")
         
         # Set GitHub output
         with open('/tmp/github_output', 'w') as f:
             if significant_changes:
                 f.write(f"significant=true\n")
                 f.write(f"changes_summary={' | '.join(significant_changes)}\n")
+                f.write(f"detailed_changes={'\\n'.join(detailed_changes)}\n")
             else:
                 f.write(f"significant=false\n")
                 f.write(f"changes_summary=Minor updates only\n")
+                f.write(f"detailed_changes=No significant changes detected\n")
         EOF
         
         # Read the output file and set GitHub outputs
@@ -124,32 +147,59 @@ jobs:
           github.rest.issues.create({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            title: '📊 Significant Feature Matrix Updates Detected',
-            body: `## 🚨 Important Changes in Feature Matrix Data
+            title: '🚨 Significant Feature Matrix Updates Detected',
+            body: `## 📊 Important Changes in Feature Matrix Data
             
             **Summary:** ${{ steps.analyze-changes.outputs.changes_summary }}
             
             **Timestamp:** ${new Date().toISOString()}
             
-            ### What happened?
+            ### 🔍 What Changed?
             The automated data update detected significant changes that may impact your presentations or documentation:
             
-            ${{ steps.analyze-changes.outputs.changes_summary }}
+            \`\`\`
+            ${{ steps.analyze-changes.outputs.detailed_changes }}
+            \`\`\`
             
-            ### Action Items:
-            - [ ] Review the updated data in \`languages.json\` and \`scms.json\`
-            - [ ] Update any presentation materials that reference these features
-            - [ ] Consider regenerating feature matrices for upcoming demos
-            - [ ] Notify relevant team members of these changes
+            ### 🚀 Deployment Status
+            - ✅ **Main Branch**: Updated with latest data
+            - 🔄 **GitHub Pages**: Auto-deployment triggered
+            - 🌐 **Live Site**: Will be updated in 2-3 minutes
+            - 📊 **Matrix Generator**: Ready for fresh presentations!
             
-            ### Files Updated:
-            - \`languages.json\` - Language support matrix
+            ### 📋 Action Items
+            - [ ] 🔍 Review the updated data in \`languages.json\` and \`scms.json\`
+            - [ ] 📑 Update any presentation materials that reference these features
+            - [ ] 🎯 Test the live Feature Matrix Generator with new data
+            - [ ] 📢 Notify relevant team members of these changes
+            - [ ] ✨ Consider highlighting these improvements in upcoming demos
+            
+            ### 📁 Files Updated
+            - \`languages.json\` - Language support matrix with Pro rules counts
             - \`scms.json\` - SCM integration capabilities
+            - GitHub Pages deployment automatically triggered
+            
+            ### 🔗 Quick Links
+            - [View Updated Data](../../blob/main/languages.json)
+            - [Live Feature Matrix Generator](../../deployments/github-pages)
+            - [Recent Commits](../../commits/main)
             
             ---
-            *This issue was automatically created by the smart update workflow. Close it when you've reviewed the changes.*`,
-            labels: ['enhancement', 'automated', 'data-update']
+            *🤖 This issue was automatically created by the smart update workflow. Close it when you've reviewed the changes.*`,
+            labels: ['enhancement', 'automated', 'data-update', 'notification']
           })
+          
+    - name: Add summary with GitHub Pages info
+      if: steps.verify-changes.outputs.changed == 'true'
+      run: |
+        echo "## 🧠 Smart Update Complete" >> $GITHUB_STEP_SUMMARY
+        echo "- **Changes**: ${{ steps.analyze-changes.outputs.changes_summary }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Significance**: ${{ steps.analyze-changes.outputs.significant }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **GitHub Pages**: 🚀 Auto-deployment triggered" >> $GITHUB_STEP_SUMMARY
+        echo "- **Live Update**: 2-3 minutes" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ steps.analyze-changes.outputs.significant }}" == "true" ]; then
+          echo "- **Notification**: 📧 GitHub Issue created for review" >> $GITHUB_STEP_SUMMARY
+        fi
           
     - name: Clean up backup files
       run: |

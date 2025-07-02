@@ -1,0 +1,202 @@
+{
+  "competitor_name": "Veracode",
+  "website": "https://www.veracode.com",
+  "last_updated": "2025-01-28",
+  "data_sources": [
+    {
+      "url": "https://www.veracode.com/",
+      "title": "Veracode Homepage",
+      "accessed_date": "2025-01-28",
+      "description": "Official website and product information"
+    }
+  ],
+  "business_overview": {
+    "description": "Veracode is a leading application security platform that provides comprehensive security testing throughout the software development lifecycle, including SAST, DAST, SCA, and other security capabilities.",
+    "market_position": "Enterprise application security leader",
+    "primary_focus": "Cloud-native application security platform"
+  },
+  "products": {
+    "sast": {
+      "product_name": "Veracode Static Analysis",
+      "supported": true,
+      "cross_file_dataflow_analysis": {
+        "supported": true,
+        "description": "Advanced static analysis with cross-file dataflow capabilities",
+        "capabilities": [
+          "Cross-file taint analysis",
+          "Inter-procedural dataflow",
+          "Complex vulnerability path detection"
+        ]
+      },
+      "languages_supported": [
+        "Java",
+        "C#",
+        ".NET",
+        "JavaScript",
+        "TypeScript",
+        "Python",
+        "C/C++",
+        "PHP",
+        "Ruby",
+        "Scala",
+        "Kotlin",
+        "Go",
+        "Swift",
+        "Objective-C",
+        "VB.NET",
+        "ColdFusion",
+        "COBOL"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "Cloud-based scanning",
+        "Comprehensive language support",
+        "Cross-file analysis",
+        "Enterprise security platform"
+      ]
+    },
+    "sca": {
+      "product_name": "Veracode SCA",
+      "supported": true,
+      "reachability_analysis": {
+        "supported": true,
+        "description": "Software composition analysis with reachability insights to prioritize vulnerable dependencies",
+        "capabilities": [
+          "Reachability analysis for open source vulnerabilities",
+          "Dependency vulnerability assessment",
+          "Risk-based prioritization"
+        ]
+      },
+      "languages_supported": [
+        "Java",
+        "JavaScript",
+        "TypeScript",
+        "Python",
+        "C#",
+        ".NET",
+        "Go",
+        "Ruby",
+        "PHP",
+        "C/C++",
+        "Scala"
+      ],
+      "package_managers": [
+        "npm",
+        "Maven",
+        "Gradle",
+        "NuGet",
+        "pip",
+        "Composer",
+        "Go Modules",
+        "RubyGems",
+        "CocoaPods"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "Open source vulnerability scanning",
+        "Reachability analysis",
+        "License compliance",
+        "Continuous monitoring"
+      ]
+    },
+    "secrets": {
+      "product_name": "Veracode Secrets Detection",
+      "supported": true,
+      "validation": {
+        "supported": true,
+        "description": "Advanced secrets detection with validation capabilities",
+        "capabilities": [
+          "Secret validation and verification",
+          "Custom pattern detection",
+          "Repository scanning",
+          "Real-time detection"
+        ]
+      },
+      "detection_types": [
+        "API keys",
+        "Database credentials",
+        "Cloud tokens",
+        "SSH keys",
+        "Custom secrets"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "Secret validation",
+        "Custom pattern support",
+        "Git history scanning",
+        "Integrated platform"
+      ]
+    }
+  },
+  "scm_support": {
+    "github": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["GitHub.com", "GitHub Enterprise Server", "GitHub Enterprise Cloud"],
+      "features": [
+        "Pull request comments",
+        "Branch scanning",
+        "Security gate integration",
+        "Automated workflows"
+      ]
+    },
+    "gitlab": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["GitLab.com", "GitLab Self-Managed"],
+      "features": [
+        "Merge request integration",
+        "Pipeline integration",
+        "Security dashboard",
+        "Automated scanning"
+      ]
+    },
+    "bitbucket": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["Bitbucket Cloud", "Bitbucket Server"],
+      "features": [
+        "Pull request integration",
+        "Pipeline support",
+        "Branch analysis",
+        "Security reporting"
+      ]
+    },
+    "azure_devops": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["Azure DevOps Services", "Azure DevOps Server"],
+      "features": [
+        "Pull request decoration",
+        "Pipeline integration",
+        "Work item integration",
+        "Security dashboard"
+      ]
+    }
+  },
+  "deployment_options": [
+    "Cloud",
+    "On-premises",
+    "Hybrid"
+  ],
+  "pricing_model": "Subscription-based",
+  "strengths": [
+    "Comprehensive application security platform",
+    "Strong SAST with cross-file analysis",
+    "Cloud-native architecture",
+    "Reachability analysis for SCA",
+    "Strong enterprise features"
+  ],
+  "weaknesses": [
+    "Can be expensive for smaller teams",
+    "Complex configuration",
+    "Learning curve for full platform",
+    "Processing time for large codebases"
+  ],
+  "competitive_notes": [
+    "Strong cloud-native platform",
+    "Comprehensive security testing suite",
+    "Good enterprise integration",
+    "Strong in regulated industries"
+  ]
+} 

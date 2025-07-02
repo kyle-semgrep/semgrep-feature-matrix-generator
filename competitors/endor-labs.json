@@ -1,0 +1,203 @@
+{
+  "competitor_name": "Endor Labs",
+  "website": "https://www.endorlabs.com",
+  "last_updated": "2025-01-28", 
+  "data_sources": [
+    {
+      "url": "https://www.endorlabs.com/learn/how-to-improve-sca-in-github-advanced-security",
+      "title": "How to Improve SCA in GitHub Advanced Security - Tutorial",
+      "accessed_date": "2025-01-28",
+      "description": "Endor Labs tutorial on improving SCA capabilities"
+    }
+  ],
+  "business_overview": {
+    "description": "Endor Labs is a next-generation application security platform focused on reachability-based SCA, SAST, secrets detection, and comprehensive security analysis with a strong emphasis on reducing noise and prioritizing real risks.",
+    "market_position": "Emerging AppSec platform with reachability focus",
+    "primary_focus": "Reachability-based security analysis and noise reduction"
+  },
+  "products": {
+    "sast": {
+      "product_name": "Endor Labs SAST",
+      "supported": true,
+      "cross_file_dataflow_analysis": {
+        "supported": true,
+        "description": "Advanced SAST with cross-file dataflow analysis integrated with SCA reachability",
+        "capabilities": [
+          "Cross-file taint analysis",
+          "SAST integrated with SCA reachability",
+          "Code correlation across security findings",
+          "Context-aware vulnerability detection"
+        ]
+      },
+      "languages_supported": [
+        "Java",
+        "JavaScript", 
+        "TypeScript",
+        "Python",
+        "C#",
+        ".NET",
+        "Go",
+        "Ruby",
+        "PHP",
+        "C/C++",
+        "Scala",
+        "Kotlin",
+        "Rust"
+      ],
+      "maturity": "Emerging",
+      "key_features": [
+        "Integrated with SCA reachability",
+        "Noise reduction focus",
+        "Context-aware analysis",
+        "Multi-scanner consolidation"
+      ]
+    },
+    "sca": {
+      "product_name": "Endor Labs Reachability-Based SCA",
+      "supported": true,
+      "reachability_analysis": {
+        "supported": true,
+        "description": "Industry-leading reachability analysis to determine if vulnerable code paths are actually used",
+        "capabilities": [
+          "Advanced reachability analysis",
+          "Call graph analysis", 
+          "Precise impact analysis",
+          "92% noise reduction through reachability",
+          "Context-aware vulnerability prioritization"
+        ]
+      },
+      "languages_supported": [
+        "C/C++",
+        "Java",
+        "JavaScript",
+        "TypeScript", 
+        "Python",
+        "Go",
+        "C#",
+        ".NET",
+        "Ruby",
+        "PHP",
+        "Rust",
+        "Bazel (specialized support)"
+      ],
+      "package_managers": [
+        "npm",
+        "Yarn",
+        "Maven",
+        "Gradle",
+        "pip",
+        "Poetry",
+        "Go Modules",
+        "NuGet",
+        "RubyGems",
+        "Composer",
+        "Cargo",
+        "Bazel"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "Industry-leading reachability analysis",
+        "92% average noise reduction",
+        "Call graph-based analysis",
+        "Specialized Bazel support",
+        "Container scanning integration"
+      ]
+    },
+    "secrets": {
+      "product_name": "Endor Labs Secrets Detection",
+      "supported": true,
+      "validation": {
+        "supported": false,
+        "description": "Pattern-based secrets detection integrated with broader security analysis",
+        "capabilities": [
+          "Pattern-based detection",
+          "Custom pattern support",
+          "Repository scanning",
+          "CI/CD integration"
+        ]
+      },
+      "detection_types": [
+        "API keys",
+        "Database credentials",
+        "Cloud tokens",
+        "Custom patterns"
+      ],
+      "maturity": "Mature",
+      "key_features": [
+        "Integrated platform approach",
+        "Custom patterns",
+        "Multi-source scanning",
+        "CI/CD integration"
+      ]
+    }
+  },
+  "scm_support": {
+    "github": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["GitHub.com", "GitHub Enterprise Server", "GitHub Enterprise Cloud"],
+      "features": [
+        "Pull request decoration",
+        "GitHub Actions integration",
+        "Branch analysis",
+        "Security gate enforcement"
+      ]
+    },
+    "gitlab": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["GitLab.com", "GitLab Self-Managed"],
+      "features": [
+        "Merge request decoration",
+        "Pipeline integration",
+        "Branch analysis",
+        "Security reporting"
+      ]
+    },
+    "bitbucket": {
+      "supported": true,
+      "integration_type": "Native integration",
+      "plans": ["Bitbucket Cloud", "Bitbucket Data Center"],
+      "features": [
+        "Pull request decoration",
+        "Pipeline integration",
+        "Branch analysis"
+      ]
+    },
+    "azure_devops": {
+      "supported": false,
+      "integration_type": "Not currently supported",
+      "plans": [],
+      "features": []
+    }
+  },
+  "deployment_options": [
+    "Cloud",
+    "On-premises",
+    "Hybrid"
+  ],
+  "pricing_model": "Subscription-based with usage tiers",
+  "strengths": [
+    "Industry-leading reachability analysis",
+    "92% average noise reduction",
+    "Strong focus on reducing false positives",
+    "Comprehensive multi-language support",
+    "Specialized Bazel support",
+    "Container scanning integration",
+    "Modern architecture and UX"
+  ],
+  "weaknesses": [
+    "Newer company with smaller market presence",
+    "Limited Azure DevOps support",
+    "No secret validation capabilities",
+    "Smaller ecosystem compared to established vendors",
+    "Less enterprise features than traditional vendors"
+  ],
+  "competitive_notes": [
+    "Leading innovation in reachability analysis",
+    "Strong differentiation through noise reduction",
+    "Good fit for organizations overwhelmed by false positives",
+    "Strong technical capabilities but newer market presence",
+    "Excellent for cloud-native and modern development workflows"
+  ]
+} 

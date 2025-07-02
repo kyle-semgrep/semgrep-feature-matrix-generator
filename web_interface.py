@@ -11,6 +11,14 @@ from datetime import datetime
 from flask import Flask, render_template, request, send_file, redirect, url_for, abort
 from werkzeug.utils import secure_filename
 
+# Import competitive analysis engine
+try:
+    from competitive_analysis import CompetitiveAnalysisEngine, ComparisonResult
+    COMPETITIVE_ANALYSIS_AVAILABLE = True
+except ImportError:
+    COMPETITIVE_ANALYSIS_AVAILABLE = False
+    print("⚠️ Competitive analysis not available - competitive_analysis.py not found")
+
 app = Flask(__name__)
 
 # Load language data from JSON
@@ -38,6 +46,75 @@ def get_scm_info(scm_name, scms):
         if scm['scm'].lower() == scm_name.lower():
             return scm
     return None
+
+def calculate_roi_analysis(roi_data):
+    """Calculate ROI comparing other scanners vs Semgrep with AI Assistant"""
+    dev_count = roi_data['developer_count']
+    hourly_cost = roi_data['hourly_cost']
+    triage_time = roi_data['triage_time']
+    
+    # Other scanners calculations
+    other_findings_total = dev_count * roi_data['other_findings_per_dev']
+    other_fp_rate = roi_data['other_false_positive_rate'] / 100
+    other_fps_total = other_findings_total * other_fp_rate
+    other_triage_time_total = other_findings_total * triage_time
+    other_triage_cost = other_triage_time_total * hourly_cost
+    other_fp_cost = other_fps_total * triage_time * hourly_cost
+    
+    # Semgrep calculations
+    semgrep_findings_total = dev_count * roi_data['semgrep_findings_per_dev']
+    semgrep_fp_rate = roi_data['semgrep_false_positive_rate'] / 100
+    semgrep_fps_total = semgrep_findings_total * semgrep_fp_rate
+    semgrep_autotriage_rate = roi_data['semgrep_autotriage_rate'] / 100
+    
+    # Auto-triage reduces manual review of false positives
+    semgrep_fps_autotriaged = semgrep_fps_total * semgrep_autotriage_rate
+    semgrep_fps_manual = semgrep_fps_total - semgrep_fps_autotriaged
+    
+    # Total findings that need manual review (true positives + manual false positives)
+    semgrep_findings_reviewed = (semgrep_findings_total - semgrep_fps_total) + semgrep_fps_manual
+    semgrep_triage_time_total = semgrep_findings_reviewed * triage_time
+    semgrep_triage_cost = semgrep_triage_time_total * hourly_cost
+    semgrep_fp_cost = semgrep_fps_manual * triage_time * hourly_cost
+    
+    # Savings calculation
+    savings = other_fp_cost - semgrep_fp_cost
+    
+    return {
+        'inputs': {
+            'developer_count': dev_count,
+            'hourly_cost': hourly_cost,
+            'triage_time': triage_time,
+            'other_findings_per_dev': roi_data['other_findings_per_dev'],
+            'other_false_positive_rate': roi_data['other_false_positive_rate'],
+            'semgrep_findings_per_dev': roi_data['semgrep_findings_per_dev'],
+            'semgrep_false_positive_rate': roi_data['semgrep_false_positive_rate'],
+            'semgrep_autotriage_rate': roi_data['semgrep_autotriage_rate']
+        },
+        'other_scanners': {
+            'findings_total': other_findings_total,
+            'findings_reviewed': other_findings_total,
+            'false_positives_total': other_fps_total,
+            'false_positives_reviewed': other_fps_total,
+            'triage_time_hours': other_triage_time_total,
+            'triage_cost': other_triage_cost,
+            'false_positive_cost': other_fp_cost
+        },
+        'semgrep': {
+            'findings_total': semgrep_findings_total,
+            'findings_reviewed': semgrep_findings_reviewed,
+            'false_positives_total': semgrep_fps_total,
+            'false_positives_reviewed': semgrep_fps_manual,
+            'false_positives_autotriaged': semgrep_fps_autotriaged,
+            'triage_time_hours': semgrep_triage_time_total,
+            'triage_cost': semgrep_triage_cost,
+            'false_positive_cost': semgrep_fp_cost
+        },
+        'savings': {
+            'false_positive_cost_avoided': savings,
+            'time_saved_hours': (other_fps_total - semgrep_fps_manual) * triage_time
+        }
+    }
 
 # HTML template for the web interface
 HTML_TEMPLATE = """
@@ -231,6 +308,13 @@ HTML_TEMPLATE = """
     <div class="container">
     <h1><img src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Semgrep_logo.svg" alt="Semgrep" style="height: 32px; vertical-align: middle; margin-right: 10px;">Requirements Matrix Generator</h1>
     
+    <div class="alert-info">
+      <strong>Data Source Transparency:</strong>
+      Language and SCM support information is sourced directly from the official Semgrep documentation.
+      See <a href="https://semgrep.dev/docs/semgrep/languages/" target="_blank" rel="noopener noreferrer">Supported Languages</a> and
+      <a href="https://semgrep.dev/docs/integrations/scm/" target="_blank" rel="noopener noreferrer">SCM Integrations</a>.
+    </div>
+    
     <div class="form-group">
         <p>This tool helps Sales generate custom compatibility
         matrices based on customer requirements.</p>
@@ -341,6 +425,101 @@ HTML_TEMPLATE = """
             </div>
         </div>
         
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="include_competitive" name="include_competitive" onchange="toggleCompetitiveOptions()">
+                Include Competitive Intelligence Analysis
+            </label>
+            <small style="color: #666; display: block; margin-top: 5px;">
+                Compare Semgrep's capabilities against selected competitors using the same languages specified above.
+            </small>
+        </div>
+        
+        <div id="competitive-options" style="display: none; margin-top: 15px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; background: #f8f9fa;">
+            <div class="form-group">
+                <label for="competitors">Select Competitors for Analysis:</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+                    {% if competitive_available %}
+                    {% for competitor in available_competitors %}
+                    <label style="display: flex; align-items: center; font-weight: normal;">
+                        <input type="checkbox" name="competitors" value="{{ competitor }}" style="margin-right: 8px;">
+                        {{ competitor }}
+                    </label>
+                    {% endfor %}
+                    {% else %}
+                    <p style="color: #dc3545; margin: 0;">Competitive analysis engine not available.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="analysis_focus">Analysis Focus:</label>
+                <select id="analysis_focus" name="analysis_focus">
+                    <option value="all">All Capabilities (SAST, SCA, Secrets)</option>
+                    <option value="sast">SAST Cross-file Dataflow Analysis</option>
+                    <option value="sca">SCA Reachability Analysis</option>
+                    <option value="secrets">Secrets Validation</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="include_roi" name="include_roi" onchange="toggleROIOptions()">
+                Include ROI Analysis
+            </label>
+            <small style="color: #666; display: block; margin-top: 5px;">
+                Calculate return on investment comparing traditional scanners vs Semgrep with AI Assistant.
+            </small>
+        </div>
+        
+        <div id="roi-options" style="display: none; margin-top: 15px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; background: #f8f9fa;">
+            <h4 style="margin-top: 0; color: #0974d7;">ROI Calculator Inputs</h4>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h5 style="margin-bottom: 10px; color: #495057;">Team & Cost Parameters</h5>
+                    <div class="form-group">
+                        <label for="developer_count">Developer Count:</label>
+                        <input type="number" id="developer_count" name="developer_count" value="50" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="hourly_cost">Developer Staff Cost / Hour ($):</label>
+                        <input type="number" id="hourly_cost" name="hourly_cost" value="100" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="triage_time">Triage Time / Finding (Hours):</label>
+                        <input type="number" id="triage_time" name="triage_time" value="0.5" step="0.1" min="0.1">
+                    </div>
+                </div>
+                
+                <div>
+                    <h5 style="margin-bottom: 10px; color: #495057;">Scanner Performance</h5>
+                    <div class="form-group">
+                        <label for="other_findings_per_dev">Other Scanners - Findings/Dev/Year:</label>
+                        <input type="number" id="other_findings_per_dev" name="other_findings_per_dev" value="24.0" step="0.1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="other_false_positive_rate">Other Scanners - False Positive % (0-100):</label>
+                        <input type="number" id="other_false_positive_rate" name="other_false_positive_rate" value="50" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="semgrep_findings_per_dev">Semgrep - Findings/Dev/Year:</label>
+                        <input type="number" id="semgrep_findings_per_dev" name="semgrep_findings_per_dev" value="13.2" step="0.1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="semgrep_false_positive_rate">Semgrep - False Positive % (0-100):</label>
+                        <input type="number" id="semgrep_false_positive_rate" name="semgrep_false_positive_rate" value="25" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="semgrep_autotriage_rate">Semgrep - Auto-triage % (0-100):</label>
+                        <input type="number" id="semgrep_autotriage_rate" name="semgrep_autotriage_rate" value="80" min="0" max="100">
+                        <small style="color: #666; font-size: 0.8em;">Percentage of false positives automatically triaged by AI Assistant</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <button type="submit">Generate Matrix</button>
     </form>
     
@@ -371,6 +550,52 @@ HTML_TEMPLATE = """
                     content.style.display = "block";
                 }
             });
+        }
+        
+        function updatePlans() {
+            const scm = document.getElementById('scm').value;
+            const planSelect = document.getElementById('plan');
+            
+            // Clear current options
+            planSelect.innerHTML = '<option value="">Select plan...</option>';
+            
+            const plans = {
+                'GitHub': ['GitHub Free', 'GitHub Pro', 'GitHub Team', 'GitHub Enterprise Cloud', 'GitHub Enterprise Server'],
+                'GitLab': ['GitLab Free', 'GitLab Premium', 'GitLab Ultimate', 'GitLab Dedicated', 'GitLab Self-Managed Free', 'GitLab Self-Managed Premium', 'GitLab Self-Managed Ultimate'],
+                'Bitbucket': ['Bitbucket Cloud Free', 'Bitbucket Cloud Standard', 'Bitbucket Cloud Premium', 'Bitbucket Data Center'],
+                'Azure DevOps': ['Azure DevOps Cloud', 'Azure DevOps Server']
+            };
+            
+            if (plans[scm]) {
+                plans[scm].forEach(plan => {
+                    const option = document.createElement('option');
+                    option.value = plan;
+                    option.textContent = plan;
+                    planSelect.appendChild(option);
+                });
+            }
+        }
+        
+        function toggleCompetitiveOptions() {
+            const checkbox = document.getElementById('include_competitive');
+            const options = document.getElementById('competitive-options');
+            
+            if (checkbox.checked) {
+                options.style.display = 'block';
+            } else {
+                options.style.display = 'none';
+            }
+        }
+        
+        function toggleROIOptions() {
+            const checkbox = document.getElementById('include_roi');
+            const options = document.getElementById('roi-options');
+            
+            if (checkbox.checked) {
+                options.style.display = 'block';
+            } else {
+                options.style.display = 'none';
+            }
         }
     </script>
     </div>
@@ -420,6 +645,81 @@ def save_matrix_as_csv(matrix, output_file):
                 scm["plan"],
                 unsupported
             ])
+        
+        # Add competitive analysis section if available
+        if matrix.get("competitive_analysis"):
+            writer.writerow([])
+            writer.writerow(["COMPETITIVE INTELLIGENCE ANALYSIS"])
+            writer.writerow(["Analysis Focus", matrix.get("analysis_focus", "all").replace("_", " ").title()])
+            writer.writerow([])
+            
+            for analysis in matrix["competitive_analysis"]:
+                writer.writerow([f"SEMGREP vs {analysis['competitor_name']}"])
+                writer.writerow(["Overall Assessment", analysis["overall_assessment"].replace("_", " ").title()])
+                writer.writerow([])
+                
+                writer.writerow(["CAPABILITY COMPARISONS"])
+                writer.writerow(["Capability", "Semgrep Status", "Competitor Status", "Result", "Notes"])
+                for cap in analysis["capability_comparisons"]:
+                    writer.writerow([
+                        cap["capability"],
+                        cap["semgrep_status"],
+                        cap["competitor_status"],
+                        cap["result"].replace("_", " ").title(),
+                        cap["notes"]
+                    ])
+                writer.writerow([])
+                
+                writer.writerow(["LANGUAGE SUPPORT COMPARISON"])
+                writer.writerow(["Language", "Semgrep Support", "Competitor Support", "Advantage"])
+                for lang in analysis["language_comparisons"]:
+                    advantage = lang["result"].replace("_", " ").title()
+                    writer.writerow([
+                        lang["language"],
+                        lang["semgrep_support"],
+                        lang["competitor_support"],
+                        advantage
+                    ])
+                writer.writerow([])
+                
+                writer.writerow(["SALES TALKING POINTS"])
+                for i, point in enumerate(analysis["sales_talking_points"], 1):
+                    writer.writerow([f"{i}.", point])
+                writer.writerow([])
+        
+        # Add ROI analysis section if available
+        if matrix.get("roi_analysis"):
+            roi = matrix["roi_analysis"]
+            writer.writerow([])
+            writer.writerow(["ROI ANALYSIS"])
+            writer.writerow(["Comparison: Other Scanners vs Semgrep Code w/ AI Assistant"])
+            writer.writerow([])
+            
+            writer.writerow(["ROI INPUTS"])
+            writer.writerow(["Parameter", "Other Scanners", "Semgrep Code w/ AI Assistant"])
+            writer.writerow(["Developer count", roi["inputs"]["developer_count"], roi["inputs"]["developer_count"]])
+            writer.writerow(["Developer Staff Cost / Hour", f"${roi['inputs']['hourly_cost']}", f"${roi['inputs']['hourly_cost']}"])
+            writer.writerow(["Findings / Dev / Year", roi["inputs"]["other_findings_per_dev"], roi["inputs"]["semgrep_findings_per_dev"]])
+            writer.writerow(["Findings, Total", f"{roi['other_scanners']['findings_total']:,.0f}", f"{roi['semgrep']['findings_total']:,.0f}"])
+            writer.writerow(["Findings, False Positive %", f"{roi['inputs']['other_false_positive_rate']}%", f"{roi['inputs']['semgrep_false_positive_rate']}%"])
+            writer.writerow(["Findings, False Positive %, Autotriaged", "", f"{roi['inputs']['semgrep_autotriage_rate']}%"])
+            writer.writerow(["Triage Time / Finding (Hours)", roi["inputs"]["triage_time"], roi["inputs"]["triage_time"]])
+            writer.writerow([])
+            
+            writer.writerow(["PROGRAM ACTIVITY"])
+            writer.writerow(["Metric", "Other Scanners", "Semgrep Code w/ AI Assistant"])
+            writer.writerow(["Findings, Total Reviewed", f"{roi['other_scanners']['findings_reviewed']:,.0f}", f"{roi['semgrep']['findings_reviewed']:,.0f}"])
+            writer.writerow(["Findings, False Positive, Reviewed", f"{roi['other_scanners']['false_positives_reviewed']:,.0f}", f"{roi['semgrep']['false_positives_reviewed']:,.0f}"])
+            writer.writerow(["Time, Total Triage", f"{roi['other_scanners']['triage_time_hours']:,.1f} hours", f"{roi['semgrep']['triage_time_hours']:,.1f} hours"])
+            writer.writerow([])
+            
+            writer.writerow(["PROGRAM COST"])
+            writer.writerow(["Cost Category", "Other Scanners", "Semgrep Code w/ AI Assistant"])
+            writer.writerow(["Cost, Triage Total", f"${roi['other_scanners']['triage_cost']:,.0f}", f"${roi['semgrep']['triage_cost']:,.0f}"])
+            writer.writerow(["Cost, Wasted on False Positives", f"${roi['other_scanners']['false_positive_cost']:,.0f}", f"${roi['semgrep']['false_positive_cost']:,.0f}"])
+            writer.writerow(["Savings through avoiding FPs", "$0", f"${roi['savings']['false_positive_cost_avoided']:,.0f}"])
+            writer.writerow([])
+    
     print(f"Matrix saved to {output_file}")
 
 def save_matrix_as_html(matrix, output_file):
@@ -688,7 +988,241 @@ def save_matrix_as_html(matrix, output_file):
                 <span class="maturity-badge maturity-beta">Beta</span> Beta Release &nbsp;
                 <span class="maturity-badge maturity-experimental">Exp</span> Experimental
                 </p>
+            </div>"""
+    
+    # Add competitive analysis section if available
+    if matrix.get("competitive_analysis"):
+        html += """
+            <h2>🥊 Competitive Intelligence Analysis</h2>
+            <div class="info">
+                <p><strong>Analysis Focus:</strong> """ + (matrix.get("analysis_focus", "all").replace("_", " ").title()) + """</p>
+                <p>Comparing Semgrep's capabilities against selected competitors for the languages specified above.</p>
+            </div>"""
+        
+        for analysis in matrix["competitive_analysis"]:
+            competitor_name = analysis["competitor_name"]
+            overall = analysis["overall_assessment"]
+            
+            # Determine overall assessment display
+            if overall == "semgrep_advantage":
+                overall_badge = '<span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; font-weight: bold;">✅ Semgrep Advantage</span>'
+            elif overall == "competitor_advantage":
+                overall_badge = '<span style="background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; font-weight: bold;">⚠️ Competitor Advantage</span>'
+            else:
+                overall_badge = '<span style="background: #e2e3e5; color: #383d41; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; font-weight: bold;">🔄 Equivalent</span>'
+            
+            html += f"""
+            <div style="margin: 20px 0; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background: white;">
+                <h3 style="margin-top: 0; color: #0974d7; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Semgrep vs {competitor_name}</span>
+                    {overall_badge}
+                </h3>
+                
+                <h4>🔍 Key Capability Comparisons</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">"""
+            
+            for cap in analysis["capability_comparisons"]:
+                if cap["result"] == "semgrep_advantage":
+                    icon = "✅"
+                    bg_color = "#f8fff9"
+                    border_color = "#28a745"
+                elif cap["result"] == "competitor_advantage":
+                    icon = "⚠️"
+                    bg_color = "#fff8f8"
+                    border_color = "#dc3545"
+                else:
+                    icon = "🔄"
+                    bg_color = "#f8f9fa"
+                    border_color = "#6c757d"
+                
+                html += f"""
+                    <div style="padding: 10px; border-left: 4px solid {border_color}; background: {bg_color}; border-radius: 4px;">
+                        <strong>{icon} {cap["capability"]}</strong><br>
+                        <small style="color: #666;">{cap["notes"]}</small>
+                    </div>"""
+            
+            html += """
+                </div>
+                
+                <h4>🎯 Sales Talking Points</h4>
+                <div style="background: #e8f4fd; padding: 15px; border-radius: 6px;">
+                    <ul style="margin: 0; padding-left: 20px;">"""
+            
+            for point in analysis["sales_talking_points"]:
+                html += f"<li>{point}</li>"
+            
+            html += """
+                    </ul>
+                </div>
+                
+                <h4>🌐 Language Support Comparison</h4>
+                <div class="table-container">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85em;">
+                        <tr style="background: #f8f9fa;">
+                            <th style="border: 1px solid #e0e0e0; padding: 8px; text-align: left;">Language</th>
+                            <th style="border: 1px solid #e0e0e0; padding: 8px; text-align: center;">Semgrep</th>
+                            <th style="border: 1px solid #e0e0e0; padding: 8px; text-align: center;">""" + competitor_name + """</th>
+                            <th style="border: 1px solid #e0e0e0; padding: 8px; text-align: center;">Advantage</th>
+                        </tr>"""
+            
+            for lang in analysis["language_comparisons"]:
+                if lang["result"] == "semgrep_advantage":
+                    advantage_text = "🟢 Semgrep"
+                elif lang["result"] == "competitor_advantage":
+                    advantage_text = "🔴 " + competitor_name
+                else:
+                    advantage_text = "🟡 Equivalent"
+                
+                html += f"""
+                        <tr>
+                            <td style="border: 1px solid #e0e0e0; padding: 8px;"><strong>{lang["language"]}</strong></td>
+                            <td style="border: 1px solid #e0e0e0; padding: 8px; text-align: center;">{lang["semgrep_support"]}</td>
+                            <td style="border: 1px solid #e0e0e0; padding: 8px; text-align: center;">{lang["competitor_support"]}</td>
+                            <td style="border: 1px solid #e0e0e0; padding: 8px; text-align: center; font-size: 0.8em;">{advantage_text}</td>
+                        </tr>"""
+            
+            html += """
+                    </table>
+                </div>
+                <h4>📚 Data Sources</h4>
+                <div style="font-size: 0.8em; color: #666;">"""
+            for source in analysis["data_sources"]:
+                html += f'<p>📄 <a href="{source["url"]}" target="_blank">{source["title"]}</a> - {source["description"]}</p>'
+            html += """
+                    <p><em>💡 All competitive intelligence sourced from public information and official documentation.</em></p>
+                </div>"""
+            
+            html += "</div>"  # Close competitor analysis div
+    
+    # Add ROI analysis section if available
+    if matrix.get("roi_analysis"):
+        roi = matrix["roi_analysis"]
+        html += """
+            <h2>💰 ROI Analysis</h2>
+            <div class="info">
+                <p><strong>Comparison:</strong> Other Scanners vs Semgrep Code w/ AI Assistant</p>
+                <p>This analysis demonstrates the cost savings achieved through Semgrep's lower false positive rates and AI-powered auto-triage capabilities.</p>
             </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                <!-- ROI Inputs -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <h3 style="margin-top: 0; color: #0974d7;">💼 ROI Inputs</h3>
+                    <div class="table-container">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                            <tr style="background: #e9ecef;">
+                                <th style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">Parameter</th>
+                                <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">Other Scanners</th>
+                                <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">Semgrep</th>
+                            </tr>"""
+        
+        html += f"""
+                            <tr>
+                                <td style="border: 1px solid #dee2e6; padding: 8px;"><strong>Developer count</strong></td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{roi['inputs']['developer_count']}</td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{roi['inputs']['developer_count']}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #dee2e6; padding: 8px;"><strong>Developer Staff Cost / Hour</strong></td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">${roi['inputs']['hourly_cost']}</td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">${roi['inputs']['hourly_cost']}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #dee2e6; padding: 8px;"><strong>Findings / Dev / Year</strong></td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{roi['inputs']['other_findings_per_dev']}</td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; color: #28a745; font-weight: bold;">{roi['inputs']['semgrep_findings_per_dev']}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #dee2e6; padding: 8px;"><strong>Findings, Total</strong></td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{roi['other_scanners']['findings_total']:,.0f}</td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; color: #28a745; font-weight: bold;">{roi['semgrep']['findings_total']:,.0f}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #dee2e6; padding: 8px;"><strong>Findings, False Positive %</strong></td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{roi['inputs']['other_false_positive_rate']}%</td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; color: #28a745; font-weight: bold;">{roi['inputs']['semgrep_false_positive_rate']}%</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #dee2e6; padding: 8px;"><strong>Findings, False Positive %, Autotriaged</strong></td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; color: #6c757d;">-</td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; color: #28a745; font-weight: bold;">{roi['inputs']['semgrep_autotriage_rate']}%</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #dee2e6; padding: 8px;"><strong>Triage Time / Finding (Hours)</strong></td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{roi['inputs']['triage_time']}</td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{roi['inputs']['triage_time']}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Program Activity -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <h3 style="margin-top: 0; color: #0974d7;">📊 Program Activity</h3>
+                    <div class="table-container">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                            <tr style="background: #e9ecef;">
+                                <th style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">Metric</th>
+                                <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">Other Scanners</th>
+                                <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">Semgrep</th>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #dee2e6; padding: 8px;"><strong>Findings, Total Reviewed</strong></td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{roi['other_scanners']['findings_reviewed']:,.0f}</td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{roi['semgrep']['findings_reviewed']:,.0f}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #dee2e6; padding: 8px;"><strong>Findings, False Positive, Reviewed</strong></td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{roi['other_scanners']['false_positives_reviewed']:,.0f}</td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{roi['semgrep']['false_positives_reviewed']:,.0f}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #dee2e6; padding: 8px;"><strong>Time, Total Triage</strong></td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{roi['other_scanners']['triage_time_hours']:,.1f} hours</td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{roi['semgrep']['triage_time_hours']:,.1f} hours</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Program Cost - Full Width -->
+            <div style="background: linear-gradient(135deg, #e8f5e8, #d4edda); padding: 25px; border-radius: 8px; border: 1px solid #28a745; margin-bottom: 30px;">
+                <h3 style="margin-top: 0; color: #155724; text-align: center;">💵 Program Cost Analysis</h3>
+                <div class="table-container">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 1em;">
+                        <tr style="background: rgba(40, 167, 69, 0.1);">
+                            <th style="border: 1px solid #28a745; padding: 12px; text-align: left;">Cost Category</th>
+                            <th style="border: 1px solid #28a745; padding: 12px; text-align: center;">Other Scanners</th>
+                            <th style="border: 1px solid #28a745; padding: 12px; text-align: center;">Semgrep Code w/ AI Assistant</th>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #28a745; padding: 12px;"><strong>Cost, Triage Total</strong></td>
+                            <td style="border: 1px solid #28a745; padding: 12px; text-align: center;">${roi['other_scanners']['triage_cost']:,.0f}</td>
+                            <td style="border: 1px solid #28a745; padding: 12px; text-align: center; color: #28a745; font-weight: bold;">${roi['semgrep']['triage_cost']:,.0f}</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #28a745; padding: 12px;"><strong>Cost, Wasted on False Positives</strong></td>
+                            <td style="border: 1px solid #28a745; padding: 12px; text-align: center;">${roi['other_scanners']['false_positive_cost']:,.0f}</td>
+                            <td style="border: 1px solid #28a745; padding: 12px; text-align: center; color: #28a745; font-weight: bold;">${roi['semgrep']['false_positive_cost']:,.0f}</td>
+                        </tr>
+                        <tr style="background: rgba(40, 167, 69, 0.2);">
+                            <td style="border: 1px solid #28a745; padding: 12px;"><strong>💰 Savings through avoiding FPs</strong></td>
+                            <td style="border: 1px solid #28a745; padding: 12px; text-align: center;">$0</td>
+                            <td style="border: 1px solid #28a745; padding: 12px; text-align: center; color: #155724; font-weight: bold; font-size: 1.2em;">${roi['savings']['false_positive_cost_avoided']:,.0f}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px; padding: 15px; background: rgba(255, 255, 255, 0.8); border-radius: 6px;">
+                    <p style="margin: 0; font-size: 1.1em; color: #155724;">
+                        <strong>🎯 Key Insight:</strong> Semgrep saves <strong>${roi['savings']['false_positive_cost_avoided']:,.0f}</strong> annually through reduced false positives and AI-powered auto-triage, 
+                        equivalent to <strong>{roi['savings']['time_saved_hours']:,.0f} developer hours</strong> of productive work time.
+                    </p>
+                </div>
+            </div>"""
+    
+    html += """
         </div>
     </body>
     </html>
@@ -706,14 +1240,70 @@ def index():
     all_languages = load_languages()
     all_scms = load_scms()
     
+    # Load available competitors
+    available_competitors = []
+    if COMPETITIVE_ANALYSIS_AVAILABLE:
+        try:
+            engine = CompetitiveAnalysisEngine()
+            available_competitors = engine.get_available_competitors()
+        except Exception as e:
+            print(f"Error loading competitors: {e}")
+            available_competitors = []
+    
     if request.method == 'POST':
         customer_name = request.form.get('customer_name', '').strip()
         languages_input = request.form.get('languages', '').strip()
         scm = request.form.get('scm', '').strip()
         plan = request.form.get('plan', '').strip()
         
+        # Competitive intelligence options
+        include_competitive = request.form.get('include_competitive') == 'on'
+        selected_competitors = request.form.getlist('competitors') if include_competitive else []
+        analysis_focus = request.form.get('analysis_focus', 'all') if include_competitive else 'all'
+        
+        # ROI analysis options
+        include_roi = request.form.get('include_roi') == 'on'
+        roi_data = {}
+        if include_roi:
+            def safe_float(value_str, default_val):
+                """Safely convert string to float, preventing NaN injection"""
+                if value_str is None:
+                    return default_val
+                value_str = str(value_str).strip().lower()
+                if value_str in ['nan', 'inf', '-inf', 'infinity', '-infinity']:
+                    return default_val
+                try:
+                    result = float(value_str)
+                    if str(result).lower() in ['nan', 'inf', '-inf']:
+                        return default_val
+                    return result
+                except (ValueError, TypeError):
+                    return default_val
+            
+            def safe_int(value_str, default_val):
+                """Safely convert string to int"""
+                if value_str is None:
+                    return default_val
+                try:
+                    return int(float(str(value_str).strip()))
+                except (ValueError, TypeError):
+                    return default_val
+            
+            roi_data = {
+                'developer_count': safe_int(request.form.get('developer_count'), 50),
+                'hourly_cost': safe_float(request.form.get('hourly_cost'), 100.0),
+                'triage_time': safe_float(request.form.get('triage_time'), 0.5),
+                'other_findings_per_dev': safe_float(request.form.get('other_findings_per_dev'), 24.0),
+                'other_false_positive_rate': safe_float(request.form.get('other_false_positive_rate'), 50.0),
+                'semgrep_findings_per_dev': safe_float(request.form.get('semgrep_findings_per_dev'), 13.2),
+                'semgrep_false_positive_rate': safe_float(request.form.get('semgrep_false_positive_rate'), 25.0),
+                'semgrep_autotriage_rate': safe_float(request.form.get('semgrep_autotriage_rate'), 80.0)
+            }
+        
         if not customer_name or not languages_input or not scm or not plan:
             error = "All fields are required."
+        elif include_competitive and not selected_competitors:
+            error = "Please select at least one competitor for analysis."
         else:
             languages = [lang.strip() for lang in languages_input.split(",") if lang.strip()]
             # Create scm_plan_pairs in the expected format
@@ -748,11 +1338,61 @@ def index():
                         "plan": plan,
                         "unsupported_features": "Not currently supported by Semgrep."
                     })
+            # Generate competitive analysis if requested
+            competitive_analysis = None
+            if include_competitive and selected_competitors and COMPETITIVE_ANALYSIS_AVAILABLE:
+                try:
+                    engine = CompetitiveAnalysisEngine()
+                    competitive_analysis = []
+                    for competitor in selected_competitors:
+                        analysis = engine.analyze_competitor(competitor, languages)
+                        competitive_analysis.append({
+                            'competitor_name': analysis.competitor_name,
+                            'overall_assessment': analysis.overall_assessment.value,
+                            'capability_comparisons': [
+                                {
+                                    'capability': cap.capability,
+                                    'semgrep_status': cap.semgrep_status,
+                                    'competitor_status': cap.competitor_status,
+                                    'result': cap.result.value,
+                                    'notes': cap.notes,
+                                    'importance': cap.importance
+                                }
+                                for cap in analysis.capability_comparisons
+                            ],
+                            'language_comparisons': [
+                                {
+                                    'language': lang.language,
+                                    'semgrep_support': lang.semgrep_support,
+                                    'competitor_support': lang.competitor_support,
+                                    'result': lang.result.value
+                                }
+                                for lang in analysis.language_comparisons
+                            ],
+                            'sales_talking_points': analysis.sales_talking_points,
+                            'data_sources': engine.get_competitor_summary(competitor).get('data_sources', [])
+                        })
+                except Exception as e:
+                    print(f"Error generating competitive analysis: {e}")
+                    competitive_analysis = None
+            
+            # Generate ROI analysis if requested
+            roi_analysis = None
+            if include_roi and roi_data:
+                try:
+                    roi_analysis = calculate_roi_analysis(roi_data)
+                except Exception as e:
+                    print(f"Error generating ROI analysis: {e}")
+                    roi_analysis = None
+            
             matrix = {
                 "generated_at": datetime.now().isoformat(),
                 "customer_name": customer_name,
                 "languages": selected_languages,
-                "scms": selected_scms
+                "scms": selected_scms,
+                "competitive_analysis": competitive_analysis,
+                "analysis_focus": analysis_focus if include_competitive else None,
+                "roi_analysis": roi_analysis
             }
             generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
@@ -856,6 +1496,15 @@ def index():
         .field-half select {{
             width: 100%;
         }}
+        .alert-info {{
+            background: #e8f4fd;
+            color: #0974d7;
+            border-left: 5px solid #0974d7;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 1.05em;
+        }}
         button {{
             background-color: #0974d7;
             color: white;
@@ -948,52 +1597,52 @@ def index():
         }}
         .maturity-ga {{ background: #28a745; color: white; }}
         .maturity-beta {{ background: #ffc107; color: #333; }}
-        .maturity-experimental {{ background: #dc3545; color: white; }}
-        .yes {{ color: #28a745; font-weight: bold; }}
-        .no {{ color: #6c757d; }}
-        .feature-list {{
-            word-wrap: break-word;
-            font-size: 0.85em;
-            line-height: 1.4;
-            font-weight: 500;
-        }}
-        .ga {{ background-color: #e6ffe6; }}
-        .beta {{ background-color: #fff2e6; }}
-        .experimental {{ background-color: #ffe6e6; }}
+        .maturity-experimental {{ background: #fd7e14; color: white; }}
+        .feature-list {{ font-size: 0.95em; color: #333; }}
         .collapsible {{
-            background-color: #f2f2f2;
+            background-color: #f1f1f1;
             color: #444;
             cursor: pointer;
-            padding: 10px;
+            padding: 10px 18px;
             width: 100%;
             border: none;
             text-align: left;
             outline: none;
-            font-size: 15px;
-            margin-bottom: 10px;
+            font-size: 1.1em;
+            border-radius: 6px;
+            margin-bottom: 8px;
         }}
         .active, .collapsible:hover {{
-            background-color: #e6e6e6;
+            background-color: #e2e6ea;
         }}
         .content {{
             padding: 0 18px;
             display: none;
             overflow: hidden;
             background-color: #f9f9f9;
+            border-radius: 0 0 6px 6px;
+            margin-bottom: 12px;
         }}
     </style>
 </head>
 <body>
     <div class="container">
     <h1><img src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Semgrep_logo.svg" alt="Semgrep" style="height: 32px; vertical-align: middle; margin-right: 10px;">Requirements Matrix Generator</h1>
-    
+
+    <div class="alert-info">
+      <strong>Data Source Transparency:</strong>
+      Language and SCM support information is sourced directly from the official Semgrep documentation.
+      See <a href="https://semgrep.dev/docs/semgrep/languages/" target="_blank" rel="noopener noreferrer">Supported Languages</a> and
+      <a href="https://semgrep.dev/docs/integrations/scm/" target="_blank" rel="noopener noreferrer">SCM Integrations</a>.
+    </div>
+
     <div class="form-group">
         <p>This tool helps Sales generate custom compatibility
         matrices based on customer requirements.</p>
     </div>
-    
+
     {error_html}
-    
+
     <form method="post" action="/">
         <div class="form-group">
             <label for="customer_name">Customer Name:</label>
@@ -1072,6 +1721,92 @@ def index():
             </div>
         </div>
         
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="include_competitive" name="include_competitive" onchange="toggleCompetitiveOptions()">
+                Include Competitive Intelligence Analysis
+            </label>
+            <small style="color: #666; display: block; margin-top: 5px;">
+                Compare Semgrep's capabilities against selected competitors using the same languages specified above.
+            </small>
+        </div>
+        
+        <div id="competitive-options" style="display: none; margin-top: 15px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; background: #f8f9fa;">
+            <div class="form-group">
+                <label for="competitors">Select Competitors for Analysis:</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+                    {', '.join([f'<label style="display: flex; align-items: center; font-weight: normal;"><input type="checkbox" name="competitors" value="{comp}" style="margin-right: 8px;">{comp}</label>' for comp in available_competitors]) if available_competitors else '<p style="color: #dc3545; margin: 0;">Competitive analysis engine not available.</p>'}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="analysis_focus">Analysis Focus:</label>
+                <select id="analysis_focus" name="analysis_focus">
+                    <option value="all">All Capabilities (SAST, SCA, Secrets)</option>
+                    <option value="sast">SAST Cross-file Dataflow Analysis</option>
+                    <option value="sca">SCA Reachability Analysis</option>
+                    <option value="secrets">Secrets Validation</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="include_roi" name="include_roi" onchange="toggleROIOptions()">
+                Include ROI Analysis
+            </label>
+            <small style="color: #666; display: block; margin-top: 5px;">
+                Calculate return on investment comparing traditional scanners vs Semgrep with AI Assistant.
+            </small>
+        </div>
+        
+        <div id="roi-options" style="display: none; margin-top: 15px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; background: #f8f9fa;">
+            <h4 style="margin-top: 0; color: #0974d7;">ROI Calculator Inputs</h4>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h5 style="margin-bottom: 10px; color: #495057;">Team & Cost Parameters</h5>
+                    <div class="form-group">
+                        <label for="developer_count">Developer Count:</label>
+                        <input type="number" id="developer_count" name="developer_count" value="50" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="hourly_cost">Developer Staff Cost / Hour ($):</label>
+                        <input type="number" id="hourly_cost" name="hourly_cost" value="100" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="triage_time">Triage Time / Finding (Hours):</label>
+                        <input type="number" id="triage_time" name="triage_time" value="0.5" step="0.1" min="0.1">
+                    </div>
+                </div>
+                
+                <div>
+                    <h5 style="margin-bottom: 10px; color: #495057;">Scanner Performance</h5>
+                    <div class="form-group">
+                        <label for="other_findings_per_dev">Other Scanners - Findings/Dev/Year:</label>
+                        <input type="number" id="other_findings_per_dev" name="other_findings_per_dev" value="24.0" step="0.1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="other_false_positive_rate">Other Scanners - False Positive % (0-100):</label>
+                        <input type="number" id="other_false_positive_rate" name="other_false_positive_rate" value="50" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="semgrep_findings_per_dev">Semgrep - Findings/Dev/Year:</label>
+                        <input type="number" id="semgrep_findings_per_dev" name="semgrep_findings_per_dev" value="13.2" step="0.1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="semgrep_false_positive_rate">Semgrep - False Positive % (0-100):</label>
+                        <input type="number" id="semgrep_false_positive_rate" name="semgrep_false_positive_rate" value="25" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="semgrep_autotriage_rate">Semgrep - Auto-triage % (0-100):</label>
+                        <input type="number" id="semgrep_autotriage_rate" name="semgrep_autotriage_rate" value="80" min="0" max="100">
+                        <small style="color: #666; font-size: 0.8em;">Percentage of false positives automatically triaged by AI Assistant</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <button type="submit">Generate Matrix</button>
     </form>
     
@@ -1119,6 +1854,28 @@ def index():
                 option.value = "";
                 option.text = "Select SCM first...";
                 planSelect.appendChild(option);
+            }}
+        }}
+        
+        function toggleCompetitiveOptions() {{
+            var checkbox = document.getElementById('include_competitive');
+            var options = document.getElementById('competitive-options');
+            
+            if (checkbox.checked) {{
+                options.style.display = 'block';
+            }} else {{
+                options.style.display = 'none';
+            }}
+        }}
+        
+        function toggleROIOptions() {{
+            var checkbox = document.getElementById('include_roi');
+            var options = document.getElementById('roi-options');
+            
+            if (checkbox.checked) {{
+                options.style.display = 'block';
+            }} else {{
+                options.style.display = 'none';
             }}
         }}
     </script>
