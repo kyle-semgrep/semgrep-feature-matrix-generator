@@ -46,6 +46,22 @@ jobs:
         echo "- **Deployment**: Live in 1-2 minutes" >> $GITHUB_STEP_SUMMARY
         echo "- **Timestamp**: $(date +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
 
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests beautifulsoup4 pandas
+
+    - name: Generate static HTML
+      run: |
+        python generate.py --customer "Demo Customer" --languages "python,java,javascript" --scms "github,gitlab" --html --output index
+
     - name: Push to GitHub Pages
       run: |
+        git add index.html
+        git commit -m "Update static index.html for GitHub Pages deployment [auto]" || echo "No changes to commit"
         git push origin github-pages 
