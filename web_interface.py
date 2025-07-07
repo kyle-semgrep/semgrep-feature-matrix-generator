@@ -267,12 +267,12 @@ HTML_TEMPLATE = """
                             <th class="maturity-col">Maturity</th>
                             <th class="dataflow-col">Dataflow</th>
                             <th class="rules-col">Rules</th>
-                            <th class="yn-col">Reach</th>
-                            <th class="yn-col">Lic</th>
-                            <th class="yn-col">Mal</th>
+                            <th class="yn-col">Reachability</th>
+                            <th class="yn-col">License</th>
+                            <th class="yn-col">Mal Deps</th>
                             <th class="list-col">Pkg Mgrs</th>
                             <th class="list-col">Lockfiles</th>
-                            <th class="yn-col">No Lock</th>
+                            <th class="yn-col">Lockfileless</th>
                         </tr>
                         {% for lang in all_languages %}
                         {% if lang.get('semgrep_docs') %}
@@ -1013,12 +1013,12 @@ def index():
                             <th class="maturity-col">Maturity</th>
                             <th class="dataflow-col">Dataflow</th>
                             <th class="rules-col">Rules</th>
-                            <th class="yn-col">Reach</th>
-                            <th class="yn-col">Lic</th>
-                            <th class="yn-col">Mal</th>
+                            <th class="yn-col">Reachability</th>
+                            <th class="yn-col">License</th>
+                            <th class="yn-col">Mal Deps</th>
                             <th class="list-col">Pkg Mgrs</th>
                             <th class="list-col">Lockfiles</th>
-                            <th class="yn-col">No Lock</th>
+                            <th class="yn-col">Lockfileless</th>
                         </tr>
                         {languages_table}
                     </table>
