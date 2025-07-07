@@ -111,10 +111,10 @@ def fetch_semgrep_docs():
             target_languages = []
             
             # Check if this is a follow-up row for package managers
-            known_package_managers = ['maven', 'gradle', 'npm', 'yarn', 'pnpm', 'pip', 'pipenv', 'poetry', 'uv', 'composer', 'cargo', 'nuget', 'rubygems', 'swiftpm']
+            known_package_managers = ['maven', 'gradle', 'npm', 'yarn', 'pnpm', 'pip', 'pipenv', 'poetry', 'uv', 'composer', 'cargo', 'nuget', 'rubygems', 'swiftpm', 'cocoapods']
             
             if (lang_text.lower() in known_package_managers or 
-                any(pm in lang_text.lower() for pm in ['pipenv', 'poetry', 'yarn', 'pnpm'])):
+                any(pm in lang_text.lower() for pm in ['pipenv', 'poetry', 'yarn', 'pnpm', 'cocoapods'])):
                 # This is a follow-up row with just package manager info
                 if current_primary_lang:
                     # current_primary_lang can be a string or a list
