@@ -351,7 +351,7 @@ HTML_TEMPLATE = """
                 <div class="table-container">
                     <table class="matrix-table">
                         <tr>
-                            <th class="lang-col">Lang</th>
+                            <th class="lang-col">Languages</th>
                             <th class="maturity-col">Maturity</th>
                             <th class="dataflow-col">Dataflow</th>
                             <th class="rules-col">Rules</th>
@@ -1662,7 +1662,7 @@ def index():
                 <div class="table-container">
                     <table class="matrix-table">
                         <tr>
-                            <th class="lang-col">Lang</th>
+                            <th class="lang-col">Languages</th>
                             <th class="maturity-col">Maturity</th>
                             <th class="dataflow-col">Dataflow</th>
                             <th class="rules-col">Rules</th>
