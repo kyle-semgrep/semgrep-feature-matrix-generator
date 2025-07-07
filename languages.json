@@ -67,9 +67,7 @@
       "open_source_licenses": true,
       "malicious_dependencies": true,
       "package_managers": [
-        "Go modules (",
-        "go mod",
-        ")"
+        "Go modules ( go mod )"
       ],
       "lockfiles": [
         "go.mod"
@@ -91,10 +89,11 @@
       "open_source_licenses": true,
       "malicious_dependencies": false,
       "package_managers": [
-        "npm"
+        "Gradle",
+        "Maven-generated dependency tree (See Setting up SSC scans for Apache Maven for instructions.)"
       ],
       "lockfiles": [
-        "package-lock.json"
+        "gradle.lockfile"
       ],
       "scan_without_lockfiles": true
     }
@@ -118,7 +117,7 @@
       "lockfiles": [
         "package-lock.json"
       ],
-      "scan_without_lockfiles": true
+      "scan_without_lockfiles": false
     }
   },
   {
@@ -160,16 +159,7 @@
         "pip"
       ],
       "lockfiles": [
-        "Any of the following:",
-        "*requirement*.txt",
-        "or",
-        "*requirement*.pip",
-        "Any manifest file in a requirements folder",
-        "such as",
-        "**/requirements/*.txt",
-        "or",
-        "**/requirements/*.pip",
-        "The file must be generated automatically and have values set to exact versions (pinned dependencies)."
+        "Any of the following: *requirement*.txt or *requirement*.pip Any manifest file in a requirements folder, such as **/requirements/*.txt or **/requirements/*.pip The file must be generated automatically and have values set to exact versions (pinned dependencies)."
       ],
       "scan_without_lockfiles": true
     }
@@ -193,7 +183,7 @@
       "lockfiles": [
         "package-lock.json"
       ],
-      "scan_without_lockfiles": true
+      "scan_without_lockfiles": false
     }
   },
   {
@@ -253,9 +243,7 @@
         "Maven"
       ],
       "lockfiles": [
-        "Maven-generated dependency tree (See",
-        "Setting up SSC scans for Apache Maven",
-        "for instructions.)"
+        "Maven-generated dependency tree (See Setting up SSC scans for Apache Maven for instructions.)"
       ],
       "scan_without_lockfiles": true
     }
@@ -277,12 +265,7 @@
         "SwiftPM"
       ],
       "lockfiles": [
-        "Package.swift",
-        "file and Swift-generated",
-        "Package.resolved",
-        "file. (See",
-        "Swift documentation",
-        "for instructions.)"
+        "Package.swift file and Swift-generated Package.resolved file. (See Swift documentation for instructions.)"
       ],
       "scan_without_lockfiles": true
     }

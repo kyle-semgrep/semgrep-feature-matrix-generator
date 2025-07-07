@@ -1,98 +1,631 @@
-
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Semgrep Compatibility Matrix - Demo Customer</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            h1, h2 { color: #333; }
-            table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-            .supported { color: green; font-weight: bold; }
-            .not-supported { color: red; }
-            .header-row { background-color: #0974d7; color: white; }
-            .ga { background-color: #e6ffe6; } /* Light green */
-            .beta { background-color: #fff2e6; } /* Light orange */
-            .experimental { background-color: #ffe6e6; } /* Light red */
-        </style>
-    </head>
-    <body>
-        <h1>Semgrep Compatibility Matrix</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semgrep Feature Matrix Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            color: #0974d7;
+            border-bottom: 2px solid #0974d7;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .inline-fields {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        .field-half {
+            flex: 1;
+        }
+        .field-half select {
+            width: 100%;
+        }
+        button {
+            background-color: #0974d7;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0757a0;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .download-links {
+            margin-top: 20px;
+        }
+        .download-links button {
+            display: inline-block;
+            margin-right: 15px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 12px;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        .download-links button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-bottom: 25px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .matrix-table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            background: white;
+            font-size: 0.75em;
+        }
+        .matrix-table th, .matrix-table td { 
+            border: 1px solid #e0e0e0; 
+            padding: 10px 6px; 
+            text-align: left;
+            line-height: 1.4;
+            vertical-align: top;
+        }
+        .matrix-table th { 
+            background: linear-gradient(135deg, #0974d7, #0757a0);
+            color: white;
+            font-weight: 600;
+            font-size: 0.8em;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            padding: 12px 6px;
+        }
+        .lang-col { min-width: 80px; max-width: 80px; }
+        .maturity-col { min-width: 45px; max-width: 45px; text-align: center; }
+        .dataflow-col { min-width: 60px; max-width: 60px; }
+        .rules-col { min-width: 40px; max-width: 40px; text-align: center; }
+        .yn-col { min-width: 35px; max-width: 35px; text-align: center; }
+        .list-col { min-width: 120px; max-width: 180px; }
+        .maturity-badge {
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.65em;
+            font-weight: bold;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .maturity-ga { background: #28a745; color: white; }
+        .maturity-beta { background: #ffc107; color: #333; }
+        .maturity-experimental { background: #dc3545; color: white; }
+        .yes { color: #28a745; font-weight: bold; }
+        .no { color: #6c757d; }
+        .feature-list {
+            word-wrap: break-word;
+            font-size: 0.85em;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+        .ga { background-color: #e6ffe6; }
+        .beta { background-color: #fff2e6; }
+        .experimental { background-color: #ffe6e6; }
+        .collapsible {
+            background-color: #f2f2f2;
+            color: #444;
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+        .active, .collapsible:hover {
+            background-color: #e6e6e6;
+        }
+        .content {
+            padding: 0 18px;
+            display: none;
+            overflow: hidden;
+            background-color: #f9f9f9;
+        }
+        .language-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .language-table th, .language-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .language-table th {
+            background-color: #f2f2f2;
+        }
+        #generated-matrix {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Semgrep_logo.svg" 
+                 alt="Semgrep" 
+                 style="height: 32px; vertical-align: middle; margin-right: 10px;">
+            Requirements Matrix Generator
+        </h1>
+        
         <div style="margin-bottom: 18px; font-size: 1.1em;">
-          <a href="https://semgrep.dev/docs/semgrep/languages/" target="_blank" rel="noopener noreferrer" style="margin-right: 18px; color: #0974d7; font-weight: bold; text-decoration: underline;">Supported Languages</a>
-          <a href="https://semgrep.dev/docs/integrations/scm/" target="_blank" rel="noopener noreferrer" style="color: #0974d7; font-weight: bold; text-decoration: underline;">SCM Integrations</a>
+          <a href="https://semgrep.dev/docs/supported-languages" target="_blank" rel="noopener noreferrer" style="margin-right: 18px; color: #0974d7; font-weight: bold; text-decoration: underline;">Supported Languages</a>
+          <a href="https://semgrep.dev/docs/getting-started/scm-support" target="_blank" rel="noopener noreferrer" style="color: #0974d7; font-weight: bold; text-decoration: underline;">SCM Integrations</a>
         </div>
-        <p>Customer: Demo Customer</p>
-        <p>Generated on: 2025-07-02T20:05:02.131642</p>
         
-        <h2>Language Support</h2>
-        <table>
-            <tr class="header-row">
-                <th>Language</th>
-                <th>Supported</th>
-                <th>Maturity</th>
-                <th>Features</th>
-                <th>Package Managers</th>
-            </tr>
-    
-            <tr class="ga">
-                <td>Python</td>
-                <td class="supported">Yes</td>
-                <td>GA</td>
-                <td>Cross-file dataflow analysis<br>Framework-specific control flow analysis<br>300+ Pro rules<br>Reachability analysis</td>
-                <td>pip (*requirement*.txt, *requirement*.pip)<br>Pipenv (Pipfile.lock)<br>Poetry (poetry.lock)<br>uv (uv.lock)</td>
-            </tr>
-            
-            <tr class="ga">
-                <td>Java</td>
-                <td class="supported">Yes</td>
-                <td>GA</td>
-                <td>Cross-file dataflow analysis<br>Framework-specific control flow analysis<br>160+ Pro rules<br>Reachability analysis</td>
-                <td>Gradle (gradle.lockfile)<br>Maven (Maven-generated dependency tree)</td>
-            </tr>
-            
-            <tr class="ga">
-                <td>JavaScript</td>
-                <td class="supported">Yes</td>
-                <td>GA</td>
-                <td>Cross-file dataflow analysis<br>Framework-specific control flow analysis<br>70+ Pro rules<br>Reachability analysis<br>Can detect malicious dependencies</td>
-                <td>npm (package-lock.json)<br>Yarn (yarn.lock)<br>pnpm (pnpm-lock.yaml)</td>
-            </tr>
-            
-        </table>
-        
-        <h2>Source Code Manager Support</h2>
-        <table>
-            <tr class="header-row">
-                <th>SCM</th>
-                <th>Supported</th>
-                <th>Features</th>
-                <th>Notes</th>
-            </tr>
-    
-            <tr>
-                <td>GitHub</td>
-                <td class="supported">Yes</td>
-                <td>PR comments<br>PR status checks<br>CI integration</td>
-                <td>Full support for GitHub Cloud and Enterprise</td>
-            </tr>
-            
-            <tr>
-                <td>GitLab</td>
-                <td class="supported">Yes</td>
-                <td>MR comments<br>MR status checks<br>CI integration</td>
-                <td>Supports both GitLab Cloud and self-hosted</td>
-            </tr>
-            
-        </table>
-        
-        <div style="margin-top: 30px; font-size: 0.8em;">
-            <h3>Maturity Level Definitions</h3>
-            <p><strong>GA (Generally Available)</strong>: Highest quality support by the Semgrep team. Reported issues are resolved promptly.</p>
-            <p><strong>Beta</strong>: Supported by the Semgrep team. Reported issues are fixed after GA languages.</p>
-            <p><strong>Experimental</strong>: There are limitations to this language's functionality. Reported issues are tracked and prioritized with best effort.</p>
+        <div class="form-group">
+            <p>This tool helps Sales generate custom compatibility matrices based on customer requirements.</p>
+            <p><em>Live web version powered by GitHub Pages - v1.2 (June 27, 2025)</em></p>
         </div>
-    </body>
-    </html>
-    
+        
+        <div id="error-message" class="error" style="display: none;"></div>
+        
+        <form id="matrix-form">
+            <div class="form-group">
+                <label for="customer_name">Customer Name:</label>
+                <input type="text" id="customer_name" name="customer_name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="languages">Languages (comma-separated):</label>
+                <input type="text" id="languages" name="languages" placeholder="e.g., python, java, javascript" required>
+                
+                <button type="button" class="collapsible">View Supported Languages</button>
+                <div class="content">
+                    <div id="languages-reference" class="table-container">
+                        <p>Loading language data...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Source Code Manager & Plan:</label>
+                <div class="inline-fields">
+                    <div class="field-half">
+                        <select id="scm" name="scm" required>
+                            <option value="">Select SCM...</option>
+                        </select>
+                    </div>
+                    <div class="field-half">
+                        <select id="plan" name="plan" required>
+                            <option value="">Select SCM first...</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="button" class="collapsible">View Supported SCMs</button>
+                <div class="content">
+                    <div id="scms-reference">
+                        <p>Loading SCM data...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit">Generate Matrix</button>
+        </form>
+        
+        <div id="result" class="result" style="display: none;">
+            <h2>Matrix Generated!</h2>
+            <p>Customer: <span id="result-customer"></span></p>
+            <p>Generated on: <span id="result-date"></span></p>
+            
+            <div class="download-links">
+                <button onclick="downloadHTML()">Download HTML Report</button>
+                <button onclick="downloadCSV()">Download CSV Report</button>
+            </div>
+            
+            <div id="generated-matrix">
+                <!-- Generated matrix will appear here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let languagesData = [];
+        let scmsData = [];
+        let generatedMatrix = null;
+
+        // Load data when page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            loadLanguagesData();
+            loadSCMsData();
+            setupEventListeners();
+        });
+
+        async function loadLanguagesData() {
+            try {
+                const response = await fetch('./languages.json?v=' + Date.now());
+                languagesData = await response.json();
+                populateLanguagesReference();
+            } catch (error) {
+                console.error('Error loading languages data:', error);
+                document.getElementById('languages-reference').innerHTML = '<p>Error loading language data. Please refresh the page.</p>';
+            }
+        }
+
+        async function loadSCMsData() {
+            try {
+                const response = await fetch('./scms.json?v=' + Date.now());
+                const rawData = await response.json();
+                console.log('Raw SCMs data loaded:', rawData.length, 'entries');
+                
+                // Transform the data structure to match what the rest of the code expects
+                scmsData = [];
+                rawData.forEach(scmGroup => {
+                    scmGroup.plans.forEach(plan => {
+                        scmsData.push({
+                            scm: scmGroup.scm,
+                            plan: plan,
+                            unsupported_features: scmGroup.unsupported_features_by_plan[plan] || []
+                        });
+                    });
+                });
+                
+                console.log('Transformed SCMs data:', scmsData.length, 'entries');
+                console.log('First few SCMs:', scmsData.slice(0, 3));
+                populateSCMsReference();
+                populateSCMDropdown();
+            } catch (error) {
+                console.error('Error loading SCMs data:', error);
+                document.getElementById('scms-reference').innerHTML = '<p>Error loading SCM data. Please refresh the page.</p>';
+            }
+        }
+
+        function populateLanguagesReference() {
+            const container = document.getElementById('languages-reference');
+            const languagesWithDocs = languagesData.filter(lang => lang.semgrep_docs);
+            
+            let html = '<table class="matrix-table"><tr><th class="lang-col">Languages</th><th class="maturity-col">Maturity</th><th class="dataflow-col">Dataflow</th><th class="rules-col">Rules</th><th class="yn-col">Reachability</th><th class="yn-col">License</th><th class="yn-col">Mal Deps</th><th class="list-col">Pkg Mgrs</th><th class="list-col">Lockfiles</th><th class="yn-col">Lockfileless</th></tr>';
+            
+            languagesWithDocs.forEach(lang => {
+                const docs = lang.semgrep_docs;
+                const maturity = docs.maturity ? docs.maturity.toLowerCase() : 'experimental';
+                html += '<tr class="' + maturity + '">';
+                html += '<td class="lang-col"><strong>' + (docs.language || '') + '</strong></td>';
+                html += '<td class="maturity-col"><span class="maturity-badge maturity-' + maturity + '">' + (docs.maturity || '') + '</span></td>';
+                html += '<td class="dataflow-col">' + (docs.dataflow || '-') + '</td>';
+                html += '<td class="rules-col">' + (docs.pro_rules || '-') + '</td>';
+                html += '<td class="yn-col ' + (docs.reachability ? 'yes' : 'no') + '">' + (docs.reachability ? '✅' : '❌') + '</td>';
+                html += '<td class="yn-col ' + (docs.open_source_licenses ? 'yes' : 'no') + '">' + (docs.open_source_licenses ? '✅' : '❌') + '</td>';
+                html += '<td class="yn-col ' + (docs.malicious_dependencies ? 'yes' : 'no') + '">' + (docs.malicious_dependencies ? '✅' : '❌') + '</td>';
+                html += '<td class="list-col feature-list">' + (docs.package_managers ? docs.package_managers.join(', ') : '-') + '</td>';
+                html += '<td class="list-col feature-list">' + (docs.lockfiles ? docs.lockfiles.join(', ') : '-') + '</td>';
+                html += '<td class="yn-col ' + (docs.scan_without_lockfiles ? 'yes' : 'no') + '">' + (docs.scan_without_lockfiles ? '✅' : '❌') + '</td>';
+                html += '</tr>';
+            });
+            
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        function populateSCMsReference() {
+            const container = document.getElementById('scms-reference');
+            
+            let html = '<table class="language-table"><tr><th>SCM & Plan</th><th>Unsupported Features</th></tr>';
+            
+            scmsData.forEach(scm => {
+                const unsupported = Array.isArray(scm.unsupported_features) 
+                    ? scm.unsupported_features.join(', ') 
+                    : scm.unsupported_features || 'None';
+                
+                html += '<tr><td><strong>' + scm.scm + '</strong><br><em>' + scm.plan + '</em></td><td>' + unsupported + '</td></tr>';
+            });
+            
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        function populateSCMDropdown() {
+            const scmSelect = document.getElementById('scm');
+            const uniqueSCMs = [...new Set(scmsData.map(scm => scm.scm))];
+            console.log('Populating SCM dropdown with:', uniqueSCMs);
+            
+            uniqueSCMs.forEach(scm => {
+                const option = document.createElement('option');
+                option.value = scm;
+                option.textContent = scm;
+                scmSelect.appendChild(option);
+            });
+            console.log('SCM dropdown populated, total options:', scmSelect.options.length);
+        }
+
+        function updatePlans() {
+            const scmSelect = document.getElementById('scm');
+            const planSelect = document.getElementById('plan');
+            const selectedSCM = scmSelect.value;
+            console.log('updatePlans called, selected SCM:', selectedSCM);
+            
+            // Clear existing options
+            planSelect.innerHTML = '';
+            
+            if (!selectedSCM) {
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select SCM first...';
+                planSelect.appendChild(defaultOption);
+                return;
+            }
+            
+            // Get unique plans for the selected SCM
+            const plans = [...new Set(scmsData
+                .filter(scm => scm.scm === selectedSCM)
+                .map(scm => scm.plan))];
+            console.log('Available plans for', selectedSCM + ':', plans);
+            
+            if (plans.length === 0) {
+                const noPlansOption = document.createElement('option');
+                noPlansOption.value = '';
+                noPlansOption.textContent = 'No plans available';
+                planSelect.appendChild(noPlansOption);
+                return;
+            }
+            
+            // Add a default "Select plan..." option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select plan...';
+            planSelect.appendChild(defaultOption);
+            
+            // Add all available plans
+            plans.forEach(plan => {
+                const option = document.createElement('option');
+                option.value = plan;
+                option.textContent = plan;
+                planSelect.appendChild(option);
+            });
+            console.log('Plan dropdown updated, total options:', planSelect.options.length);
+        }
+
+        function setupEventListeners() {
+            // Collapsible sections
+            document.querySelectorAll('.collapsible').forEach(button => {
+                button.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const content = this.nextElementSibling;
+                    if (content.style.display === 'block') {
+                        content.style.display = 'none';
+                    } else {
+                        content.style.display = 'block';
+                    }
+                });
+            });
+            
+            // SCM change handler
+            document.getElementById('scm').addEventListener('change', updatePlans);
+            
+            // Form submission
+            document.getElementById('matrix-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                generateMatrix();
+            });
+        }
+
+        function generateMatrix() {
+            const customerName = document.getElementById('customer_name').value.trim();
+            const languagesInput = document.getElementById('languages').value.trim();
+            const scm = document.getElementById('scm').value.trim();
+            const plan = document.getElementById('plan').value.trim();
+            
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.style.display = 'none';
+            
+            if (!customerName || !languagesInput || !scm || !plan) {
+                showError('All fields are required.');
+                return;
+            }
+            
+            const languages = languagesInput.split(',').map(lang => lang.trim()).filter(lang => lang);
+            
+            generatedMatrix = {
+                customer_name: customerName,
+                generated_at: new Date().toISOString(),
+                languages: [],
+                scms: []
+            };
+            
+            languages.forEach(langName => {
+                const langInfo = languagesData.find(lang => 
+                    lang.language && lang.language.toLowerCase() === langName.toLowerCase()
+                );
+                
+                if (langInfo) {
+                    generatedMatrix.languages.push(langInfo);
+                } else {
+                    generatedMatrix.languages.push({
+                        language: langName,
+                        maturity: 'N/A',
+                        milan_comments: 'Not currently supported by Semgrep.'
+                    });
+                }
+            });
+            
+            const scmInfo = scmsData.find(s => s.scm === scm && s.plan === plan);
+            if (scmInfo) {
+                generatedMatrix.scms.push({
+                    scm: scm,
+                    plan: plan,
+                    unsupported_features: scmInfo.unsupported_features || ''
+                });
+            } else {
+                generatedMatrix.scms.push({
+                    scm: scm,
+                    plan: plan,
+                    unsupported_features: 'Not currently supported by Semgrep.'
+                });
+            }
+            
+            displayMatrix();
+        }
+
+        function displayMatrix() {
+            const resultDiv = document.getElementById('result');
+            const matrixDiv = document.getElementById('generated-matrix');
+            
+            document.getElementById('result-customer').textContent = generatedMatrix.customer_name;
+            document.getElementById('result-date').textContent = new Date().toLocaleString();
+            
+            let html = generateMatrixHTML();
+            matrixDiv.innerHTML = html;
+            
+            resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function generateMatrixHTML() {
+            let html = '<h3>Language Support</h3><div class="table-container"><table class="matrix-table">';
+            html += '<tr><th class="lang-col">Languages</th><th class="maturity-col">Maturity</th><th class="dataflow-col">Dataflow</th><th class="rules-col">Rules</th><th class="yn-col">Reachability</th><th class="yn-col">License</th><th class="yn-col">Mal Deps</th><th class="list-col">Pkg Mgrs</th><th class="list-col">Lockfiles</th><th class="yn-col">Lockfileless</th></tr>';
+            
+            generatedMatrix.languages.forEach(lang => {
+                const docs = lang.semgrep_docs || {};
+                const maturity = docs.maturity ? docs.maturity.toLowerCase() : 'experimental';
+                html += '<tr class="' + maturity + '">';
+                html += '<td class="lang-col"><strong>' + (lang.language || '') + '</strong></td>';
+                html += '<td class="maturity-col">' + (docs.maturity ? '<span class="maturity-badge maturity-' + maturity + '">' + docs.maturity + '</span>' : 'N/A') + '</td>';
+                html += '<td class="dataflow-col">' + (docs.dataflow || '-') + '</td>';
+                html += '<td class="rules-col">' + (docs.pro_rules || '-') + '</td>';
+                html += '<td class="yn-col ' + (docs.reachability ? 'yes' : 'no') + '">' + (docs.reachability ? '✅' : '❌') + '</td>';
+                html += '<td class="yn-col ' + (docs.open_source_licenses ? 'yes' : 'no') + '">' + (docs.open_source_licenses ? '✅' : '❌') + '</td>';
+                html += '<td class="yn-col ' + (docs.malicious_dependencies ? 'yes' : 'no') + '">' + (docs.malicious_dependencies ? '✅' : '❌') + '</td>';
+                html += '<td class="list-col feature-list">' + (docs.package_managers ? docs.package_managers.join(', ') : '-') + '</td>';
+                html += '<td class="list-col feature-list">' + (docs.lockfiles ? docs.lockfiles.join(', ') : '-') + '</td>';
+                html += '<td class="yn-col ' + (docs.scan_without_lockfiles ? 'yes' : 'no') + '">' + (docs.scan_without_lockfiles ? '✅' : '❌') + '</td>';
+                html += '</tr>';
+            });
+            
+            html += '</table></div><h3>SCM Support</h3><div class="table-container"><table class="matrix-table">';
+            html += '<tr><th>SCM</th><th>Plan</th><th>Unsupported Features</th></tr>';
+            
+            generatedMatrix.scms.forEach(scm => {
+                const unsupported = Array.isArray(scm.unsupported_features) 
+                    ? scm.unsupported_features.join(', ') 
+                    : scm.unsupported_features || 'None';
+                
+                html += '<tr><td><strong>' + scm.scm + '</strong></td><td>' + scm.plan + '</td><td class="feature-list">' + unsupported + '</td></tr>';
+            });
+            
+            html += '</table></div>';
+            return html;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            errorDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function downloadHTML() {
+            if (!generatedMatrix) return;
+            
+            const htmlContent = generateFullHTMLReport();
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = generatedMatrix.customer_name.replace(/[^a-zA-Z0-9]/g, '_') + '_matrix.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadCSV() {
+            if (!generatedMatrix) return;
+            
+            const csvContent = generateCSVReport();
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = generatedMatrix.customer_name.replace(/[^a-zA-Z0-9]/g, '_') + '_matrix.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function generateFullHTMLReport() {
+            return '<!DOCTYPE html><html><head><title>Semgrep Feature Matrix - ' + generatedMatrix.customer_name + '</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 15px; background-color: #f8f9fa; color: #333; } .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); } h1 { color: #0974d7; border-bottom: 3px solid #0974d7; padding-bottom: 10px; } .info { background: #e8f4fd; padding: 12px; border-radius: 6px; margin-bottom: 25px; border-left: 4px solid #0974d7; } table { border-collapse: collapse; width: 100%; margin-bottom: 25px; background: white; } th, td { border: 1px solid #e0e0e0; padding: 8px 12px; text-align: left; } th { background: linear-gradient(135deg, #0974d7, #0757a0); color: white; font-weight: 600; } .maturity-ga { background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; } .maturity-beta { background: #ffc107; color: #333; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; } .maturity-experimental { background: #dc3545; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; } .yes { color: #28a745; font-weight: bold; } .no { color: #6c757d; }</style></head><body><div class="container"><h1><img src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Semgrep_logo.svg" alt="Semgrep" style="height: 32px; vertical-align: middle; margin-right: 10px;">Feature Matrix</h1><div class="info"><strong>Customer:</strong> ' + generatedMatrix.customer_name + '<br><strong>Generated:</strong> ' + new Date().toLocaleDateString() + '<br><strong>Languages:</strong> ' + generatedMatrix.languages.map(l => l.language).join(', ') + '<br><strong>SCM:</strong> ' + generatedMatrix.scms.map(s => s.scm + ' ' + s.plan).join(', ') + '</div>' + generateMatrixHTML() + '<p><em>Generated by Semgrep Feature Matrix Generator</em></p></div></body></html>';
+        }
+
+        function generateCSVReport() {
+            let csv = 'Semgrep Compatibility Matrix for ' + generatedMatrix.customer_name + '\n';
+            csv += 'Generated on,' + new Date().toLocaleDateString() + '\n\n';
+            csv += 'LANGUAGE SUPPORT\n';
+            csv += 'Language,Maturity,Dataflow Analysis,# Pro Rules,Reachability Analysis,Open Source License Detection,Malicious Dependency Detection,Supported Package Managers,Supported Lockfiles,Scan Without Lockfiles\n';
+            
+            generatedMatrix.languages.forEach(lang => {
+                const docs = lang.semgrep_docs || {};
+                csv += '"' + (lang.language || '') + '","' + (docs.maturity || '') + '","' + (docs.dataflow || '') + '","' + (docs.pro_rules || '') + '","' + (docs.reachability ? 'Yes' : 'No') + '","' + (docs.open_source_licenses ? 'Yes' : 'No') + '","' + (docs.malicious_dependencies ? 'Yes' : 'No') + '","' + (docs.package_managers ? docs.package_managers.join(', ') : '') + '","' + (docs.lockfiles ? docs.lockfiles.join(', ') : '') + '","' + (docs.scan_without_lockfiles ? 'Yes' : 'No') + '"\n';
+            });
+            
+            csv += '\nSOURCE CODE MANAGER SUPPORT\n';
+            csv += 'SCM,Plan,Unsupported Features\n';
+            
+            generatedMatrix.scms.forEach(scm => {
+                const unsupported = Array.isArray(scm.unsupported_features) 
+                    ? scm.unsupported_features.join(', ') 
+                    : scm.unsupported_features || '';
+                csv += '"' + scm.scm + '","' + scm.plan + '","' + unsupported + '"\n';
+            });
+            
+            return csv;
+        }
+    </script>
+</body>
+</html>

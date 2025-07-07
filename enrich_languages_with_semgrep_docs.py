@@ -92,17 +92,67 @@ def fetch_semgrep_docs():
             pm_table = t
             break
     if pm_table:
+        # First pass: collect all package managers and lockfiles per language
+        language_pm_data = {}
+        
         for row in pm_table.find_all('tr')[1:]:
             cells = row.find_all(['td', 'th'])
             if not cells or len(cells) < 2:
                 continue
-            lang = cells[0].get_text(strip=True)
-            managers = [m.strip() for m in cells[1].get_text(',').split(',') if m.strip()]
-            lockfiles = [l.strip() for l in cells[2].get_text(',').split(',') if l.strip()] if len(cells) > 2 else []
-            for l in languages:
-                if l['language'].lower() in lang.lower() or lang.lower() in l['language'].lower():
-                    l['package_managers'] = managers
-                    l['lockfiles'] = lockfiles
+            
+            lang_text = cells[0].get_text(strip=True)
+            pm_text = cells[1].get_text(separator=' ', strip=True)
+            lf_text = cells[2].get_text(separator=' ', strip=True) if len(cells) > 2 else ''
+            
+            # Handle the case where Maven is a separate row for Java
+            if lang_text.lower() == 'maven':
+                # This is a Maven row, assign it to Java
+                target_languages = ['java']
+            else:
+                # Handle potential multiple languages in a single cell (e.g., "JavaScript or TypeScript")
+                target_languages = [name.strip() for name in lang_text.replace(' or ', ',').replace('/', ',').split(',')]
+            
+            # Process each target language
+            for lang_name in target_languages:
+                normalized_lang = lang_name.lower().strip()
+                
+                # Initialize if not exists
+                if normalized_lang not in language_pm_data:
+                    language_pm_data[normalized_lang] = {
+                        'package_managers': [],
+                        'lockfiles': []
+                    }
+                
+                # Add package manager (avoid duplicates)
+                if pm_text and pm_text not in language_pm_data[normalized_lang]['package_managers']:
+                    language_pm_data[normalized_lang]['package_managers'].append(pm_text)
+                
+                # Add lockfile (avoid duplicates)
+                if lf_text and lf_text not in language_pm_data[normalized_lang]['lockfiles']:
+                    language_pm_data[normalized_lang]['lockfiles'].append(lf_text)
+        
+        # Second pass: match collected data to our languages
+        for l in languages:
+            normalized_existing = l['language'].lower().strip()
+            
+            # Look for matches in our collected data
+            for lang_key, data in language_pm_data.items():
+                # Exact match or close match handling
+                if (lang_key == normalized_existing or 
+                    lang_key in normalized_existing or 
+                    normalized_existing in lang_key):
+                    
+                    # Special handling for common ambiguous cases
+                    if lang_key == 'java' and 'javascript' in normalized_existing:
+                        continue  # Skip JavaScript when looking for Java
+                    if 'javascript' in lang_key and normalized_existing == 'java':
+                        continue  # Skip Java when looking for JavaScript
+                    if 'typescript' in lang_key and normalized_existing == 'java':
+                        continue  # Skip Java when looking for TypeScript
+                    
+                    l['package_managers'] = data['package_managers']
+                    l['lockfiles'] = data['lockfiles']
+                    break
     # Parse feature support table for scan-without-lockfiles
     feature_table = None
     for t in soup.find_all('table'):
@@ -114,11 +164,35 @@ def fetch_semgrep_docs():
             cells = row.find_all(['td', 'th'])
             if not cells or len(cells) < 2:
                 continue
-            lang = cells[0].get_text(strip=True)
+            
+            lang_text = cells[0].get_text(strip=True)
+            
+            # Handle potential multiple languages in a single cell
+            lang_names = [name.strip() for name in lang_text.replace('/', ',').split(',')]
+            
+            # Check for scan-without-lockfiles support
             scan_without = '✅' in cells[1].get_text() or 'yes' in cells[1].get_text().lower()
-            for l in languages:
-                if l['language'].lower() in lang.lower() or lang.lower() in l['language'].lower():
-                    l['scan_without_lockfiles'] = scan_without
+            
+            # Match languages precisely
+            for lang_name in lang_names:
+                normalized_lang = lang_name.lower().strip()
+                
+                for l in languages:
+                    normalized_existing = l['language'].lower().strip()
+                    
+                    # Exact match or close match handling
+                    if (normalized_lang == normalized_existing or 
+                        normalized_lang in normalized_existing or 
+                        normalized_existing in normalized_lang):
+                        
+                        # Special handling for common ambiguous cases
+                        if normalized_lang == 'java' and 'javascript' in normalized_existing:
+                            continue  # Skip JavaScript when looking for Java
+                        if normalized_lang == 'javascript' and normalized_existing == 'java':
+                            continue  # Skip Java when looking for JavaScript
+                        
+                        l['scan_without_lockfiles'] = scan_without
+                        break
     return languages
 
 # 3. Enrich local JSON
