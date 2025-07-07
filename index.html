@@ -330,7 +330,7 @@
             const container = document.getElementById('languages-reference');
             const languagesWithDocs = languagesData.filter(lang => lang.semgrep_docs);
             
-            let html = '<table class="matrix-table"><tr><th class="lang-col">Lang</th><th class="maturity-col">Maturity</th><th class="dataflow-col">Dataflow</th><th class="rules-col">Rules</th><th class="yn-col">Reach</th><th class="yn-col">Lic</th><th class="yn-col">Mal</th><th class="list-col">Pkg Mgrs</th><th class="list-col">Lockfiles</th><th class="yn-col">No Lock</th></tr>';
+            let html = '<table class="matrix-table"><tr><th class="lang-col">Languages</th><th class="maturity-col">Maturity</th><th class="dataflow-col">Dataflow</th><th class="rules-col">Rules</th><th class="yn-col">Reach</th><th class="yn-col">Lic</th><th class="yn-col">Mal</th><th class="list-col">Pkg Mgrs</th><th class="list-col">Lockfiles</th><th class="yn-col">No Lock</th></tr>';
             
             languagesWithDocs.forEach(lang => {
                 const docs = lang.semgrep_docs;
@@ -528,7 +528,7 @@
 
         function generateMatrixHTML() {
             let html = '<h3>Language Support</h3><div class="table-container"><table class="matrix-table">';
-            html += '<tr><th class="lang-col">Lang</th><th class="maturity-col">Maturity</th><th class="dataflow-col">Dataflow</th><th class="rules-col">Rules</th><th class="yn-col">Reach</th><th class="yn-col">Lic</th><th class="yn-col">Mal</th><th class="list-col">Pkg Mgrs</th><th class="list-col">Lockfiles</th><th class="yn-col">No Lock</th></tr>';
+            html += '<tr><th class="lang-col">Languages</th><th class="maturity-col">Maturity</th><th class="dataflow-col">Dataflow</th><th class="rules-col">Rules</th><th class="yn-col">Reach</th><th class="yn-col">Lic</th><th class="yn-col">Mal</th><th class="list-col">Pkg Mgrs</th><th class="list-col">Lockfiles</th><th class="yn-col">No Lock</th></tr>';
             
             generatedMatrix.languages.forEach(lang => {
                 const docs = lang.semgrep_docs || {};
