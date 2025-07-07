@@ -95,6 +95,9 @@ def fetch_semgrep_docs():
         # First pass: collect all package managers and lockfiles per language
         language_pm_data = {}
         
+        # Track the current primary language for follow-up rows
+        current_primary_lang = None
+        
         for row in pm_table.find_all('tr')[1:]:
             cells = row.find_all(['td', 'th'])
             if not cells or len(cells) < 2:
@@ -104,13 +107,39 @@ def fetch_semgrep_docs():
             pm_text = cells[1].get_text(separator=' ', strip=True)
             lf_text = cells[2].get_text(separator=' ', strip=True) if len(cells) > 2 else ''
             
-            # Handle the case where Maven is a separate row for Java
-            if lang_text.lower() == 'maven':
-                # This is a Maven row, assign it to Java
-                target_languages = ['java']
+            # Determine target languages for this row
+            target_languages = []
+            
+            # Check if this is a follow-up row for package managers
+            known_package_managers = ['maven', 'gradle', 'npm', 'yarn', 'pnpm', 'pip', 'pipenv', 'poetry', 'uv', 'composer', 'cargo', 'nuget', 'rubygems', 'swiftpm']
+            
+            if (lang_text.lower() in known_package_managers or 
+                any(pm in lang_text.lower() for pm in ['pipenv', 'poetry', 'yarn', 'pnpm'])):
+                # This is a follow-up row with just package manager info
+                if current_primary_lang:
+                    # current_primary_lang can be a string or a list
+                    if isinstance(current_primary_lang, list):
+                        target_languages = current_primary_lang
+                    else:
+                        target_languages = [current_primary_lang]
+                    # For these rows: Cell 0 = package manager name, Cell 1 = lockfile name
+                    pm_text = lang_text  # The package manager name is in the "language" column
+                    lf_text = cells[1].get_text(separator=' ', strip=True) if len(cells) > 1 else ''
             else:
-                # Handle potential multiple languages in a single cell (e.g., "JavaScript or TypeScript")
-                target_languages = [name.strip() for name in lang_text.replace(' or ', ',').replace('/', ',').split(',')]
+                # This is a primary language row
+                if 'javascript' in lang_text.lower() or 'typescript' in lang_text.lower():
+                    # Handle "JavaScript or TypeScript" -> both JS and TS
+                    target_languages = ['javascript', 'typescript']
+                    current_primary_lang = ['javascript', 'typescript']  # Both for follow-ups
+                elif lang_text.lower() == 'maven':
+                    # Maven rows apply to Java and Kotlin
+                    target_languages = ['java', 'kotlin']
+                    current_primary_lang = None  # Maven is for multiple langs
+                else:
+                    # Regular language row
+                    target_languages = [name.strip() for name in lang_text.replace(' or ', ',').replace('/', ',').split(',')]
+                    if target_languages:
+                        current_primary_lang = target_languages[0].lower()
             
             # Process each target language
             for lang_name in target_languages:

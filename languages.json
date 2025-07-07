@@ -90,10 +90,11 @@
       "malicious_dependencies": false,
       "package_managers": [
         "Gradle",
-        "Maven-generated dependency tree (See Setting up SSC scans for Apache Maven for instructions.)"
+        "Maven"
       ],
       "lockfiles": [
-        "gradle.lockfile"
+        "gradle.lockfile",
+        "Maven-generated dependency tree (See Setting up SSC scans for Apache Maven for instructions.)"
       ],
       "scan_without_lockfiles": true
     }
@@ -112,10 +113,14 @@
       "open_source_licenses": true,
       "malicious_dependencies": true,
       "package_managers": [
-        "npm"
+        "npm",
+        "Yarn",
+        "pnpm"
       ],
       "lockfiles": [
-        "package-lock.json"
+        "package-lock.json",
+        "yarn.lock",
+        "pnpm-lock.yaml"
       ],
       "scan_without_lockfiles": false
     }
@@ -134,10 +139,12 @@
       "open_source_licenses": true,
       "malicious_dependencies": false,
       "package_managers": [
-        "Gradle"
+        "Gradle",
+        "Maven"
       ],
       "lockfiles": [
-        "gradle.lockfile"
+        "gradle.lockfile",
+        "Maven-generated dependency tree (See Setting up SSC scans for Apache Maven for instructions.)"
       ],
       "scan_without_lockfiles": true
     }
@@ -156,10 +163,16 @@
       "open_source_licenses": true,
       "malicious_dependencies": true,
       "package_managers": [
-        "pip"
+        "pip",
+        "Pipenv",
+        "Poetry",
+        "uv"
       ],
       "lockfiles": [
-        "Any of the following: *requirement*.txt or *requirement*.pip Any manifest file in a requirements folder, such as **/requirements/*.txt or **/requirements/*.pip The file must be generated automatically and have values set to exact versions (pinned dependencies)."
+        "Any of the following: *requirement*.txt or *requirement*.pip Any manifest file in a requirements folder, such as **/requirements/*.txt or **/requirements/*.pip The file must be generated automatically and have values set to exact versions (pinned dependencies).",
+        "Pipfile.lock",
+        "poetry.lock",
+        "uv.lock"
       ],
       "scan_without_lockfiles": true
     }
@@ -178,10 +191,14 @@
       "open_source_licenses": true,
       "malicious_dependencies": true,
       "package_managers": [
-        "npm"
+        "npm",
+        "Yarn",
+        "pnpm"
       ],
       "lockfiles": [
-        "package-lock.json"
+        "package-lock.json",
+        "yarn.lock",
+        "pnpm-lock.yaml"
       ],
       "scan_without_lockfiles": false
     }
