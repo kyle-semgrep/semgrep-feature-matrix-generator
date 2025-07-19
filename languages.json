@@ -330,7 +330,7 @@
       "lockfiles": [
         "composer.lock"
       ],
-      "scan_without_lockfiles": false
+      "scan_without_lockfiles": true
     }
   },
   {
