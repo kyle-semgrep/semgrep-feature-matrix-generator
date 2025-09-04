@@ -5,7 +5,7 @@
     security-scan:
       uses: r2c-CSE/Node.js_Report_Generator/.github/workflows/reusable-build-security-scan.yml@feature/build-report-type
       with:
-        semgrep_project_id: "123"           # Replace with actual project ID
+        semgrep_project_id: "3707108"           # Replace with actual project ID
         semgrep_org_name: "kyle-northcutt-semgrep-com"     # Replace with actual org name  
       secrets:
         semgrep_app_token: ${{ secrets.SEMGREP_APP_TOKEN }}  # Set in repository secrets
