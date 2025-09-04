@@ -1,4 +1,4 @@
-# Name of this GitHub Actions workflow.
+# Name of this GitHub Actions workflow...
 name: Semgrep
 
 on:
