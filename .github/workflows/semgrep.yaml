@@ -49,4 +49,4 @@ jobs:
       uses: r2c-CSE/Node.js_Report_Generator/.github/workflows/reusable-build-security-scan.yml@feature/build-report-type
       with:
         semgrep_project_id: "3739273"           # Replace with actual project ID
-        semgrep_org_name: "semgrep-kyle-sms     # Replace with actual org name 
+        semgrep_org_name: "semgrep-kyle-sms"     # Replace with actual org name 
