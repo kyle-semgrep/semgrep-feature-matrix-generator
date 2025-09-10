@@ -45,3 +45,8 @@ jobs:
           # Generate a token from Semgrep AppSec Platform > Settings
           # and add it to your GitHub secrets.
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+  security-scan:
+      uses: r2c-CSE/Node.js_Report_Generator/.github/workflows/reusable-build-security-scan.yml@feature/build-report-type
+      with:
+        semgrep_project_id: "3739273"           # Replace with actual project ID
+        semgrep_org_name: "semgrep-kyle-sms     # Replace with actual org name 
