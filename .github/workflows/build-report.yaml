@@ -1,318 +1,467 @@
-     name: Security Scan
+# FULLY SELF-CONTAINED WORKFLOW - No external repository dependencies
+# Copy this to: .github/workflows/security-scan.yml in any repository
+# Everything is embedded directly in this workflow file
 
-     on:
-       push:
-         branches: [main, master, develop]
-       pull_request:
-         branches: [main, master]
-       workflow_dispatch:
-         inputs:
-           time_window:
-             description: 'Time window (24h, 7d, etc.)'
-             default: '24h'
-             required: false
-           severity_filter:
-             description: 'Severity filter (Critical,High,Medium,Low)'
-             default: 'Critical,High'
-             required: false
-           semgrep_project_id:
-             description: 'Override Semgrep Project ID'
-             required: false
-           fail_on_critical:
-             description: 'Fail build on critical findings'
-             type: boolean
-             default: true
+name: Self-Contained Security Scan
 
-     jobs:
-       security-scan:
-         runs-on: ubuntu-latest
-         name: Net-New Security Vulnerability Scan
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      time_window:
+        description: 'Time window (24h, 7d, etc.)'
+        default: '24h'
+        required: false
+      severity_filter:
+        description: 'Severity filter (Critical,High,Medium,Low)'
+        default: 'Critical,High'
+        required: false
+      semgrep_project_id:
+        description: 'Override Semgrep Project ID'
+        required: false
+      fail_on_critical:
+        description: 'Fail build on critical findings'
+        type: boolean
+        default: true
 
-         steps:
-           - name: Checkout Current Repository
-             uses: actions/checkout@v4
-             with:
-               path: 'target-repo'
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    name: Net-New Security Vulnerability Scan
+    
+    steps:
+      - name: Checkout Current Repository
+        uses: actions/checkout@v4
+        with:
+          path: 'target-repo'
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Validate Configuration
+        run: |
+          # Check required variables are set
+          if [[ -z "${{ vars.SEMGREP_PROJECT_ID }}${{ github.event.inputs.semgrep_project_id }}" ]]; then
+            echo "❌ SEMGREP_PROJECT_ID must be set as repository variable or workflow input"
+            echo "   Go to Settings → Secrets and variables → Actions → Variables"
+            echo "   Add SEMGREP_PROJECT_ID with your Semgrep project ID"
+            exit 1
+          fi
+          
+          if [[ -z "${{ vars.SEMGREP_ORG_NAME }}" ]]; then
+            echo "❌ SEMGREP_ORG_NAME must be set as repository variable"
+            echo "   Go to Settings → Secrets and variables → Actions → Variables" 
+            echo "   Add SEMGREP_ORG_NAME with your Semgrep organization name"
+            exit 1
+          fi
+          
+          if [[ -z "${{ secrets.SEMGREP_APP_TOKEN }}" ]]; then
+            echo "❌ SEMGREP_APP_TOKEN must be set as repository secret"
+            echo "   Go to Settings → Secrets and variables → Actions → Secrets"
+            echo "   Add SEMGREP_APP_TOKEN with your Semgrep API token"
+            exit 1
+          fi
+          
+          echo "✅ Configuration validated"
+          echo "   Project ID: ${{ vars.SEMGREP_PROJECT_ID }}${{ github.event.inputs.semgrep_project_id }}"
+          echo "   Organization: ${{ vars.SEMGREP_ORG_NAME }}"
+          echo "   Token: Set (${#SEMGREP_APP_TOKEN} characters)"
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+          
+      - name: Create Self-Contained Security Scanner
+        run: |
+          mkdir -p security-scanner
+          cd security-scanner
+          
+          # Initialize Node.js project
+          npm init -y
+          
+          # Install required dependencies
+          npm install axios @react-pdf/renderer react fs-extra
+          
+          # Create the security scanner script
+          cat > security-scanner.js << 'EOF'
+          const fs = require('fs-extra');
+          const axios = require('axios');
+          const path = require('path');
+          
+          class SecurityScanner {
+            constructor(config) {
+              this.config = config;
+              this.apiClient = axios.create({
+                baseURL: 'https://semgrep.dev/api/v1',
+                headers: {
+                  'Authorization': `Bearer ${config.apiToken}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+            }
+            
+            async getFindings(projectId, timeWindow) {
+              console.log(`🔍 Fetching findings for project ${projectId}`);
+              
+              // Calculate time window
+              const now = new Date();
+              const timeAgo = this.parseTimeWindow(timeWindow);
+              const sinceDate = new Date(now - timeAgo);
+              
+              try {
+                const response = await this.apiClient.get(`/deployments/${projectId}/findings`, {
+                  params: {
+                    page_size: 1000,
+                    since: sinceDate.toISOString()
+                  }
+                });
+                
+                return response.data.findings || [];
+              } catch (error) {
+                console.error('Failed to fetch findings:', error.message);
+                throw error;
+              }
+            }
+            
+            parseTimeWindow(timeWindow) {
+              const match = timeWindow.match(/^(\d+)([hdw])$/);
+              if (!match) throw new Error(`Invalid time window: ${timeWindow}`);
+              
+              const [, amount, unit] = match;
+              const multipliers = { h: 3600000, d: 86400000, w: 604800000 };
+              return parseInt(amount) * multipliers[unit];
+            }
+            
+            async detectNetNewFindings(findings, baselinePath) {
+              console.log(`📊 Processing ${findings.length} findings`);
+              
+              let baseline = [];
+              if (await fs.pathExists(baselinePath)) {
+                baseline = await fs.readJson(baselinePath);
+                console.log(`📋 Loaded ${baseline.length} baseline findings`);
+              } else {
+                console.log('📋 No baseline found, treating all findings as net-new');
+              }
+              
+              const baselineIds = new Set(baseline.map(f => f.id));
+              const netNewFindings = findings.filter(f => !baselineIds.has(f.id));
+              
+              console.log(`🆕 Found ${netNewFindings.length} net-new findings`);
+              
+              // Update baseline
+              await fs.outputJson(baselinePath, findings, { spaces: 2 });
+              
+              return {
+                netNewFindings,
+                totalFindings: findings.length,
+                baselineFindings: baseline.length
+              };
+            }
+            
+            filterBySeverity(findings, severityFilter) {
+              if (severityFilter.toLowerCase() === 'all') return findings;
+              
+              const allowedSeverities = severityFilter.split(',').map(s => s.trim().toLowerCase());
+              return findings.filter(f => 
+                allowedSeverities.includes(f.severity?.toLowerCase() || 'unknown')
+              );
+            }
+            
+            async generateReport(results, outputPath) {
+              console.log(`📝 Generating report: ${outputPath}`);
+              
+              const { netNewFindings, totalFindings, baselineFindings } = results;
+              
+              const reportData = {
+                summary: {
+                  scanDate: new Date().toISOString(),
+                  repository: this.config.repository,
+                  branch: this.config.branch,
+                  commit: this.config.commit,
+                  buildNumber: this.config.buildNumber,
+                  netNewCount: netNewFindings.length,
+                  totalCount: totalFindings,
+                  baselineCount: baselineFindings
+                },
+                findings: netNewFindings.map(f => ({
+                  id: f.id,
+                  ruleId: f.check_id,
+                  severity: f.severity,
+                  message: f.extra?.message || f.check_id,
+                  path: f.path,
+                  line: f.start?.line,
+                  category: f.extra?.metadata?.category,
+                  cwe: f.extra?.metadata?.cwe,
+                  owasp: f.extra?.metadata?.owasp
+                }))
+              };
+              
+              // Generate simple HTML report (since PDF generation is complex)
+              const html = this.generateHtmlReport(reportData);
+              await fs.outputFile(outputPath.replace('.pdf', '.html'), html);
+              
+              // Also create JSON report
+              await fs.outputFile(outputPath.replace('.pdf', '.json'), JSON.stringify(reportData, null, 2));
+              
+              console.log(`✅ Report generated: ${outputPath.replace('.pdf', '.html')}`);
+              console.log(`📊 JSON data saved: ${outputPath.replace('.pdf', '.json')}`);
+              
+              return reportData;
+            }
+            
+            generateHtmlReport(data) {
+              const { summary, findings } = data;
+              
+              const severityCounts = findings.reduce((acc, f) => {
+                acc[f.severity || 'Unknown'] = (acc[f.severity || 'Unknown'] || 0) + 1;
+                return acc;
+              }, {});
+              
+              return `<!DOCTYPE html>
+          <html>
+          <head>
+            <title>Security Scan Report - Build ${summary.buildNumber}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              .header { background: #dc3545; color: white; padding: 20px; border-radius: 5px; }
+              .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+              .metric { background: #f8f9fa; padding: 15px; border-radius: 5px; text-align: center; }
+              .metric-value { font-size: 24px; font-weight: bold; color: #dc3545; }
+              .findings { margin-top: 30px; }
+              .finding { border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px; }
+              .severity-critical { border-left: 5px solid #dc3545; }
+              .severity-high { border-left: 5px solid #fd7e14; }
+              .severity-medium { border-left: 5px solid #ffc107; }
+              .severity-low { border-left: 5px solid #28a745; }
+              .code-path { font-family: monospace; background: #f8f9fa; padding: 5px; border-radius: 3px; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>🔒 Net-New Security Vulnerabilities Report</h1>
+              <p><strong>Repository:</strong> ${summary.repository}</p>
+              <p><strong>Build:</strong> #${summary.buildNumber} | <strong>Branch:</strong> ${summary.branch}</p>
+              <p><strong>Scan Date:</strong> ${new Date(summary.scanDate).toLocaleString()}</p>
+            </div>
+            
+            <div class="summary">
+              <div class="metric">
+                <div class="metric-value">${summary.netNewCount}</div>
+                <div>Net-New Vulnerabilities</div>
+              </div>
+              <div class="metric">
+                <div class="metric-value">${severityCounts.Critical || 0}</div>
+                <div>Critical</div>
+              </div>
+              <div class="metric">
+                <div class="metric-value">${severityCounts.High || 0}</div>
+                <div>High</div>
+              </div>
+              <div class="metric">
+                <div class="metric-value">${summary.totalCount}</div>
+                <div>Total Findings</div>
+              </div>
+            </div>
+            
+            <div class="findings">
+              <h2>🔍 Detailed Findings</h2>
+              ${findings.length === 0 ? 
+                '<p>✅ No net-new vulnerabilities detected in this build!</p>' :
+                findings.map(f => `
+                  <div class="finding severity-${f.severity?.toLowerCase() || 'unknown'}">
+                    <h3>${f.ruleId}</h3>
+                    <p><strong>Severity:</strong> ${f.severity || 'Unknown'}</p>
+                    <p><strong>Message:</strong> ${f.message}</p>
+                    <p><strong>Location:</strong> <span class="code-path">${f.path}:${f.line || '?'}</span></p>
+                    ${f.cwe ? `<p><strong>CWE:</strong> ${f.cwe}</p>` : ''}
+                    ${f.owasp ? `<p><strong>OWASP:</strong> ${f.owasp}</p>` : ''}
+                  </div>
+                `).join('')
+              }
+            </div>
+          </body>
+          </html>`;
+            }
+          }
+          
+          // Main execution
+          async function main() {
+            const config = {
+              projectId: process.env.SEMGREP_PROJECT_ID,
+              orgName: process.env.SEMGREP_ORG_NAME,
+              apiToken: process.env.SEMGREP_APP_TOKEN,
+              timeWindow: process.env.TIME_WINDOW || '24h',
+              severityFilter: process.env.SEVERITY_FILTER || 'Critical,High',
+              repository: process.env.GITHUB_REPOSITORY,
+              branch: process.env.GITHUB_REF_NAME,
+              commit: process.env.GITHUB_SHA,
+              buildNumber: process.env.GITHUB_RUN_NUMBER
+            };
+            
+            console.log('🚀 Starting security scan...');
+            console.log(`   Project: ${config.projectId}`);
+            console.log(`   Time Window: ${config.timeWindow}`);
+            console.log(`   Severity Filter: ${config.severityFilter}`);
+            
+            const scanner = new SecurityScanner(config);
+            
+            try {
+              // Fetch findings
+              const findings = await scanner.getFindings(config.projectId, config.timeWindow);
+              
+              // Filter by severity
+              const filteredFindings = scanner.filterBySeverity(findings, config.severityFilter);
+              
+              // Detect net-new
+              const baselinePath = './artifacts/baseline.json';
+              const results = await scanner.detectNetNewFindings(filteredFindings, baselinePath);
+              
+              // Generate report
+              const reportPath = './artifacts/security-report.pdf';
+              const reportData = await scanner.generateReport(results, reportPath);
+              
+              // Output results for GitHub Actions
+              console.log(`::set-output name=net_new_findings::${results.netNewFindings.length}`);
+              console.log(`::set-output name=critical_findings::${results.netNewFindings.filter(f => f.severity === 'Critical').length}`);
+              console.log(`::set-output name=report_generated::true`);
+              
+              // Check if should fail
+              const criticalCount = results.netNewFindings.filter(f => f.severity === 'Critical').length;
+              if (process.env.FAIL_ON_CRITICAL === 'true' && criticalCount > 0) {
+                console.error(`❌ Build failed: ${criticalCount} critical vulnerabilities detected`);
+                process.exit(1);
+              }
+              
+              console.log('✅ Security scan completed successfully');
+              
+            } catch (error) {
+              console.error('❌ Security scan failed:', error.message);
+              console.log('::set-output name=report_generated::false');
+              process.exit(1);
+            }
+          }
+          
+          if (require.main === module) {
+            main().catch(console.error);
+          }
+          EOF
+          
+      - name: Download Previous Baseline
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: semgrep-baseline-${{ github.repository_owner }}-${{ vars.SEMGREP_PROJECT_ID || github.event.inputs.semgrep_project_id }}
+          path: ./security-scanner/artifacts/
+          
+      - name: Run Security Scan
+        id: scan
+        working-directory: './security-scanner'
+        env:
+          SEMGREP_PROJECT_ID: ${{ vars.SEMGREP_PROJECT_ID || github.event.inputs.semgrep_project_id }}
+          SEMGREP_ORG_NAME: ${{ vars.SEMGREP_ORG_NAME }}
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+          TIME_WINDOW: ${{ github.event.inputs.time_window || '24h' }}
+          SEVERITY_FILTER: ${{ github.event.inputs.severity_filter || 'Critical,High' }}
+          FAIL_ON_CRITICAL: ${{ github.event.inputs.fail_on_critical != 'false' }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -e
+          
+          echo "🔍 Starting security scan for repository: ${{ github.repository }}"
+          echo "📊 Project ID: $SEMGREP_PROJECT_ID"
+          echo "⏱️  Time Window: $TIME_WINDOW"
+          echo "🎯 Severity Filter: $SEVERITY_FILTER"
+          
+          # Create artifacts directory
+          mkdir -p artifacts
+          
+          # Run the security scanner
+          node security-scanner.js
+          
+          echo "✅ Security scan completed"
+          
+      - name: Upload Security Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report-${{ github.run_number }}
+          path: |
+            ./security-scanner/artifacts/security-report.html
+            ./security-scanner/artifacts/security-report.json
+          retention-days: 90
+          
+      - name: Upload Updated Baseline
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-baseline-${{ github.repository_owner }}-${{ vars.SEMGREP_PROJECT_ID || github.event.inputs.semgrep_project_id }}
+          path: ./security-scanner/artifacts/baseline.json
+          retention-days: 30
+          
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let reportData = {};
+            let reportExists = false;
+            
+            try {
+              const reportPath = './security-scanner/artifacts/security-report.json';
+              if (fs.existsSync(reportPath)) {
+                reportData = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+                reportExists = true;
+              }
+            } catch (error) {
+              console.log('Could not read report data:', error.message);
+            }
+            
+            const netNewFindings = reportData.summary?.netNewCount || 0;
+            const criticalFindings = reportData.findings?.filter(f => f.severity === 'Critical').length || 0;
+            
+            const statusEmoji = criticalFindings > 0 ? '🚨' : (netNewFindings > 0 ? '⚠️' : '✅');
+            const statusText = criticalFindings > 0 ? 'Critical Issues Found' : (netNewFindings > 0 ? 'New Issues Detected' : 'No New Issues');
+            
+            const comment = `## ${statusEmoji} Security Scan Report - ${statusText}
+            
+            **Scan Results for Build #${{ github.run_number }}**
+            
+            📊 **Summary:**
+            - **Net-New Findings:** ${netNewFindings}
+            - **Critical Findings:** ${criticalFindings}
+            - **Time Window:** ${{ github.event.inputs.time_window || '24h' }}
+            - **Severity Filter:** ${{ github.event.inputs.severity_filter || 'Critical,High' }}
+            
+            📁 **Report:** ${reportExists ? 'Available in [Actions artifacts](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})' : 'Generation failed - check logs'}
+            
+            🔗 **Commit:** [\`${{ github.sha }}\`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
 
-           - name: Checkout Semgrep Reporter
-             uses: actions/checkout@v4
-             with:
-               repository: 'r2c-CSE/Node.js_Report_Generator'
-               ref: 'feature/build-report-type'  # Use feature branch until merged
-               path: 'semgrep-reporter'
-
-           - name: Setup Node.js
-             uses: actions/setup-node@v4
-             with:
-               node-version: '18'
-               cache: 'npm'
-               cache-dependency-path: 'semgrep-reporter/package-lock.json'
-
-           - name: Install Reporter Dependencies
-             working-directory: './semgrep-reporter'
-             run: npm ci
-
-           - name: Build Reporter
-             working-directory: './semgrep-reporter'
-             run: npm run build
-
-           - name: Download Previous Baseline
-             continue-on-error: true
-             uses: actions/download-artifact@v4
-             with:
-               name: semgrep-baseline-${{ github.repository_owner }}-${{ vars.SEMGREP_PROJECT_ID || github.event.inputs.semgrep_project_id }}
-               path: ./semgrep-reporter/artifacts/
-
-           - name: Validate Configuration
-             run: |
-               # Check required variables are set
-               if [[ -z "${{ vars.SEMGREP_PROJECT_ID }}${{ github.event.inputs.semgrep_project_id }}" ]]; then
-                 echo "❌ SEMGREP_PROJECT_ID must be set as repository variable or workflow input"
-                 echo "   Go to Settings → Secrets and variables → Actions → Variables"
-                 echo "   Add SEMGREP_PROJECT_ID with your Semgrep project ID"
-                 exit 1
-               fi
-
-               if [[ -z "${{ vars.SEMGREP_ORG_NAME }}" ]]; then
-                 echo "❌ SEMGREP_ORG_NAME must be set as repository variable"
-                 echo "   Go to Settings → Secrets and variables → Actions → Variables"
-                 echo "   Add SEMGREP_ORG_NAME with your Semgrep organization name"
-                 exit 1
-               fi
-
-               if [[ -z "${{ secrets.SEMGREP_APP_TOKEN }}" ]]; then
-                 echo "❌ SEMGREP_APP_TOKEN must be set as repository secret"
-                 echo "   Go to Settings → Secrets and variables → Actions → Secrets"
-                 echo "   Add SEMGREP_APP_TOKEN with your Semgrep API token"
-                 exit 1
-               fi
-
-               echo "✅ Configuration validated"
-               echo "   Project ID: ${{ vars.SEMGREP_PROJECT_ID }}${{ github.event.inputs.semgrep_project_id }}"
-               echo "   Organization: ${{ vars.SEMGREP_ORG_NAME }}"
-               echo "   Token: Set (${#SEMGREP_APP_TOKEN} characters)"
-             env:
-               SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-
-           - name: Create Dynamic Configuration
-             working-directory: './semgrep-reporter'
-             run: |
-               # Use workflow input or repository variable for project ID
-               PROJECT_ID="${{ github.event.inputs.semgrep_project_id || vars.SEMGREP_PROJECT_ID }}"
-
-               # Create runtime configuration
-               cat > config/runtime-build-config.json << EOF
-               {
-                 "customer": {
-                   "name": "${{ github.repository_owner }}",
-                   "industry": "Technology",
-                   "reportingContact": "security@${{ github.repository_owner }}.com"
-                 },
-                 "projects": [{
-                   "semgrepProjectId": "${PROJECT_ID}",
-                   "include": true
-                 }],
-                 "applicationSettings": {
-                   "businessCriticality": "High",
-                   "complianceRequirements": ["OWASP", "CWE"],
-                   "riskTolerance": "Medium"
-                 },
-                 "reportConfiguration": {
-                   "findingsDetailLevel": "build",
-                   "detailFilterMinSeverity": "High",
-                   "includeDashboardLinks": true,
-                   "includeSections": {
-                     "executiveSummary": true,
-                     "securityScorecard": false,
-                     "owaspMapping": true,
-                     "findingsDetails": true,
-                     "remediationRoadmap": true,
-                     "complianceMatrix": false,
-                     "appendixMethodology": false
-                   },
-                   "severityThresholds": {
-                     "blockingFindings": ["Critical"],
-                     "expeditedFindings": ["Critical", "High"],
-                     "scheduledFindings": ["Medium", "Low"]
-                   },
-                   "outputFormats": ["pdf"],
-                   "branding": {
-                     "companyLogo": "./assets/semgrep.svg",
-                     "primaryColor": "#dc3545",
-                     "accentColor": "#f8f9fa"
-                   },
-                   "buildReportConfig": {
-                     "timeWindow": "${{ github.event.inputs.time_window || '24h' }}",
-                     "baselinePath": "./artifacts/baseline-${PROJECT_ID}.json",
-                     "updateBaseline": true,
-                     "detectionMethod": "auto",
-                     "severityFilter": [$(echo "${{ github.event.inputs.severity_filter || 'Critical,High' }}" | sed 's/,/", "/g' | sed 's/^/"/; s/$/"/')],
-                     "includeFixedFindings": false,
-                     "failOnCritical": ${{ github.event.inputs.fail_on_critical != 'false' }},
-                     "buildMetadata": {
-                       "buildNumber": "${{ github.run_number }}",
-                       "commitHash": "${{ github.sha }}",
-                       "branch": "${{ github.ref_name }}",
-                       "buildUrl": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-                       "triggeredBy": "${{ github.actor }}",
-                       "pullRequestId": "${{ github.event.number || '' }}",
-                       "buildStartTime": "${{ github.event.head_commit.timestamp || '' }}",
-                       "buildTool": "github-actions"
-                     },
-                     "notifications": {
-                       "slack": {
-                         "enabled": false,
-                         "webhookUrl": "",
-                         "onlyOnNewFindings": true
-                       }
-                     }
-                   }
-                 },
-                 "semgrepConfiguration": {
-                   "requiredScans": {
-                     "sast": true,
-                     "supplyChain": true,
-                     "secrets": true
-                   },
-                   "rulesets": ["owasp-top-10", "cwe-top-25"],
-                   "minimumSemgrepLevel": "SL3"
-                 },
-                 "integrationSettings": {
-                   "jiraTicketCreation": false,
-                   "slackNotifications": false,
-                   "emailReporting": {
-                     "enabled": false,
-                     "recipients": [],
-                     "frequency": "never"
-                   }
-                 },
-                 "organizationSettings": {
-                   "organizationName": "${{ vars.SEMGREP_ORG_NAME }}",
-                   "apiToken": "${{ secrets.SEMGREP_APP_TOKEN }}"
-                 }
-               }
-               EOF
-
-               echo "✅ Configuration created for project: ${PROJECT_ID}"
-
-           - name: Run Build Security Report
-             working-directory: './semgrep-reporter'
-             env:
-               SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-             run: |
-               set -e
-
-               PROJECT_ID="${{ github.event.inputs.semgrep_project_id || vars.SEMGREP_PROJECT_ID }}"
-               REPORT_FILE="./artifacts/build-security-report-${{ github.run_number }}.pdf"
-
-               echo "🔍 Starting security scan for repository: ${{ github.repository }}"
-               echo "📊 Project ID: ${PROJECT_ID}"
-               echo "⏱️  Time Window: ${{ github.event.inputs.time_window || '24h' }}"
-               echo "🎯 Severity Filter: ${{ github.event.inputs.severity_filter || 'Critical,High' }}"
-
-               # Run the build report CLI
-               node dist/cli/BuildReportCLI.js \
-                 --config=config/runtime-build-config.json \
-                 --output="$REPORT_FILE" \
-                 --verbose 2>&1 | tee scan-output.log
-
-               echo "✅ Security scan completed"
-               echo "📁 Report generated: $REPORT_FILE"
-
-               # Check if report was actually created
-               if [[ -f "$REPORT_FILE" ]]; then
-                 echo "report_generated=true" >> $GITHUB_ENV
-                 echo "report_path=$REPORT_FILE" >> $GITHUB_ENV
-               else
-                 echo "report_generated=false" >> $GITHUB_ENV
-                 echo "❌ Report file not found: $REPORT_FILE"
-                 exit 1
-               fi
-
-           - name: Upload Security Report Artifact
-             if: always()
-             uses: actions/upload-artifact@v4
-             with:
-               name: build-security-report-${{ github.run_number }}
-               path: ./semgrep-reporter/artifacts/build-security-report-*.pdf
-               retention-days: 90
-
-           - name: Upload Updated Baseline
-             if: always()
-             uses: actions/upload-artifact@v4
-             with:
-               name: semgrep-baseline-${{ github.repository_owner }}-${{ vars.SEMGREP_PROJECT_ID || github.event.inputs.semgrep_project_id }}
-               path: ./semgrep-reporter/artifacts/baseline-*.json
-               retention-days: 30
-
-           - name: Comment on PR
-             if: github.event_name == 'pull_request' && always()
-             uses: actions/github-script@v7
-             with:
-               script: |
-                 const fs = require('fs');
-                 const path = './semgrep-reporter/artifacts/build-security-report-${{ github.run_number }}.pdf';
-                 const reportExists = fs.existsSync(path);
-
-                 const projectId = '${{ github.event.inputs.semgrep_project_id || vars.SEMGREP_PROJECT_ID }}';
-                 const timeWindow = '${{ github.event.inputs.time_window || '24h' }}';
-                 const severityFilter = '${{ github.event.inputs.severity_filter || 'Critical,High' }}';
-
-                 const statusEmoji = reportExists ? '✅' : '❌';
-                 const statusText = reportExists ? 'Report Generated' : 'Report Generation Failed';
-
-                 const comment = `## 🔒 Build Security Report - ${statusText}
-
-                 **Scan completed for Build #${{ github.run_number }}**
-
-                 📊 **Configuration:**
-                 - **Repository:** ${{ github.repository }}
-                 - **Project ID:** ${projectId}
-                 - **Time Window:** ${timeWindow}
-                 - **Severity Filter:** ${severityFilter}
-                 - **Commit:** [\`${{ github.sha }}\`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
-
-                 📁 **Report:** ${reportExists ?
-                   'Available in [Actions artifacts](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})' :
-                   'Generation failed - check [workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details'
-                 }
-
-                 ${statusEmoji} **Status:** ${reportExists ? 'Successfully generated net-new vulnerability report' : 'Report generation encountered errors'}
-                 `;
-
-                 github.rest.issues.createComment({
-                   issue_number: context.issue.number,
-                   owner: context.repo.owner,
-                   repo: context.repo.repo,
-                   body: comment
-                 });
-
-           - name: Generate Step Summary
-             if: always()
-             run: |
-               echo "## 🔒 Build Security Scan Results" >> $GITHUB_STEP_SUMMARY
-               echo "" >> $GITHUB_STEP_SUMMARY
-               echo "**Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
-               echo "**Project ID:** ${{ github.event.inputs.semgrep_project_id || vars.SEMGREP_PROJECT_ID }}" >> $GITHUB_STEP_SUMMARY
-               echo "**Build Number:** ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
-               echo "**Commit:** [\`${{ github.sha }}\`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})" >> $GITHUB_STEP_SUMMARY
-               echo "**Time Window:** ${{ github.event.inputs.time_window || '24h' }}" >> $GITHUB_STEP_SUMMARY
-               echo "**Severity Filter:** ${{ github.event.inputs.severity_filter || 'Critical,High' }}" >> $GITHUB_STEP_SUMMARY
-               echo "" >> $GITHUB_STEP_SUMMARY
-
-               if [[ "${{ env.report_generated }}" == "true" ]]; then
-                 echo "### ✅ Report Generated Successfully" >> $GITHUB_STEP_SUMMARY
-                 echo "" >> $GITHUB_STEP_SUMMARY
-                 echo "📁 **Download Report:** [build-security-report-${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
-                 echo "" >> $GITHUB_STEP_SUMMARY
-                 echo "The report contains analysis of net-new vulnerabilities detected within the specified time window." >> $GITHUB_STEP_SUMMARY
-               else
-                 echo "### ❌ Report Generation Failed" >> $GITHUB_STEP_SUMMARY
-                 echo "" >> $GITHUB_STEP_SUMMARY
-                 echo "Please check the workflow logs for error details." >> $GITHUB_STEP_SUMMARY
-                 echo "" >> $GITHUB_STEP_SUMMARY
-                 echo "**Common Issues:**" >> $GITHUB_STEP_SUMMARY
-                 echo "- Invalid Semgrep project ID or organization name" >> $GITHUB_STEP_SUMMARY
-                 echo "- API token missing or lacks 'Web API' permission" >> $GITHUB_STEP_SUMMARY
-                 echo "- Network connectivity issues" >> $GITHUB_STEP_SUMMARY
-               fi
+      - name: Generate Step Summary
+        if: always()
+        run: |
+          echo "## 🔒 Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Project ID:** ${{ vars.SEMGREP_PROJECT_ID || github.event.inputs.semgrep_project_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Number:** ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** [\`${{ github.sha }}\`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})" >> $GITHUB_STEP_SUMMARY
+          echo "**Time Window:** ${{ github.event.inputs.time_window || '24h' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Severity Filter:** ${{ github.event.inputs.severity_filter || 'Critical,High' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📁 **Download Report:** [security-report-${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
