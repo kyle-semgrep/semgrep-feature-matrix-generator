@@ -279,12 +279,10 @@
       "open_source_licenses": true,
       "malicious_dependencies": false,
       "package_managers": [
-        "SwiftPM",
-        "CocoaPods"
+        "SwiftPM"
       ],
       "lockfiles": [
-        "Package.swift file and Swift-generated Package.resolved file. (See Swift documentation for instructions.)",
-        "Podfile.lock"
+        "Package.swift file and Swift-generated Package.resolved file. (See Swift documentation for instructions.)"
       ],
       "scan_without_lockfiles": true
     }
