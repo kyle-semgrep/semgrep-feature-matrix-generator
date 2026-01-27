@@ -107,9 +107,10 @@ jobs:
         # Set GitHub output
         with open('/tmp/github_output', 'w') as f:
             if significant_changes:
+                detailed_str = '\\n'.join(detailed_changes)
                 f.write(f"significant=true\n")
                 f.write(f"changes_summary={' | '.join(significant_changes)}\n")
-                f.write(f"detailed_changes={'\\n'.join(detailed_changes)}\n")
+                f.write(f"detailed_changes={detailed_str}\n")
             else:
                 f.write(f"significant=false\n")
                 f.write(f"changes_summary=Minor updates only\n")
