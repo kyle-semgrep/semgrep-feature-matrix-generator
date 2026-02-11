@@ -44,13 +44,9 @@
       "reachability": true,
       "open_source_licenses": true,
       "malicious_dependencies": true,
-      "package_managers": [
-        "NuGet"
-      ],
-      "lockfiles": [
-        "packages.lock.json"
-      ],
-      "scan_without_lockfiles": true
+      "package_managers": [],
+      "lockfiles": [],
+      "scan_without_lockfiles": false
     }
   },
   {
@@ -66,13 +62,9 @@
       "reachability": true,
       "open_source_licenses": true,
       "malicious_dependencies": true,
-      "package_managers": [
-        "Go modules ( go mod )"
-      ],
-      "lockfiles": [
-        "go.mod"
-      ],
-      "scan_without_lockfiles": true
+      "package_managers": [],
+      "lockfiles": [],
+      "scan_without_lockfiles": false
     }
   },
   {
@@ -88,15 +80,9 @@
       "reachability": true,
       "open_source_licenses": true,
       "malicious_dependencies": false,
-      "package_managers": [
-        "Gradle",
-        "Maven"
-      ],
-      "lockfiles": [
-        "gradle.lockfile",
-        "Maven-generated dependency tree (See Setting up SSC scans for Apache Maven for instructions.)"
-      ],
-      "scan_without_lockfiles": true
+      "package_managers": [],
+      "lockfiles": [],
+      "scan_without_lockfiles": false
     }
   },
   {
@@ -112,16 +98,8 @@
       "reachability": true,
       "open_source_licenses": true,
       "malicious_dependencies": true,
-      "package_managers": [
-        "npm",
-        "Yarn",
-        "pnpm"
-      ],
-      "lockfiles": [
-        "package-lock.json",
-        "yarn.lock",
-        "pnpm-lock.yaml"
-      ],
+      "package_managers": [],
+      "lockfiles": [],
       "scan_without_lockfiles": false
     }
   },
@@ -138,15 +116,9 @@
       "reachability": true,
       "open_source_licenses": true,
       "malicious_dependencies": false,
-      "package_managers": [
-        "Gradle",
-        "Maven"
-      ],
-      "lockfiles": [
-        "gradle.lockfile",
-        "Maven-generated dependency tree (See Setting up SSC scans for Apache Maven for instructions.)"
-      ],
-      "scan_without_lockfiles": true
+      "package_managers": [],
+      "lockfiles": [],
+      "scan_without_lockfiles": false
     }
   },
   {
@@ -162,19 +134,9 @@
       "reachability": true,
       "open_source_licenses": true,
       "malicious_dependencies": true,
-      "package_managers": [
-        "pip",
-        "Pipenv",
-        "Poetry",
-        "uv"
-      ],
-      "lockfiles": [
-        "Any of the following: *requirement*.txt or *requirement*.pip Any manifest file in a requirements folder, such as **/requirements/*.txt or **/requirements/*.pip The file must be generated automatically and have values set to exact versions (pinned dependencies).",
-        "Pipfile.lock",
-        "poetry.lock",
-        "uv.lock"
-      ],
-      "scan_without_lockfiles": true
+      "package_managers": [],
+      "lockfiles": [],
+      "scan_without_lockfiles": false
     }
   },
   {
@@ -190,16 +152,8 @@
       "reachability": true,
       "open_source_licenses": true,
       "malicious_dependencies": true,
-      "package_managers": [
-        "npm",
-        "Yarn",
-        "pnpm"
-      ],
-      "lockfiles": [
-        "package-lock.json",
-        "yarn.lock",
-        "pnpm-lock.yaml"
-      ],
+      "package_managers": [],
+      "lockfiles": [],
       "scan_without_lockfiles": false
     }
   },
@@ -234,13 +188,9 @@
       "reachability": true,
       "open_source_licenses": true,
       "malicious_dependencies": true,
-      "package_managers": [
-        "RubyGems"
-      ],
-      "lockfiles": [
-        "Gemfile.lock"
-      ],
-      "scan_without_lockfiles": true
+      "package_managers": [],
+      "lockfiles": [],
+      "scan_without_lockfiles": false
     }
   },
   {
@@ -256,13 +206,9 @@
       "reachability": true,
       "open_source_licenses": true,
       "malicious_dependencies": false,
-      "package_managers": [
-        "Maven"
-      ],
-      "lockfiles": [
-        "Maven-generated dependency tree (See Setting up SSC scans for Apache Maven for instructions.)"
-      ],
-      "scan_without_lockfiles": true
+      "package_managers": [],
+      "lockfiles": [],
+      "scan_without_lockfiles": false
     }
   },
   {
@@ -278,13 +224,9 @@
       "reachability": true,
       "open_source_licenses": true,
       "malicious_dependencies": false,
-      "package_managers": [
-        "SwiftPM"
-      ],
-      "lockfiles": [
-        "Package.swift file and Swift-generated Package.resolved file. (See Swift documentation for instructions.)"
-      ],
-      "scan_without_lockfiles": true
+      "package_managers": [],
+      "lockfiles": [],
+      "scan_without_lockfiles": false
     }
   },
   {
@@ -300,12 +242,8 @@
       "reachability": false,
       "open_source_licenses": true,
       "malicious_dependencies": true,
-      "package_managers": [
-        "Cargo*"
-      ],
-      "lockfiles": [
-        "cargo.lock"
-      ],
+      "package_managers": [],
+      "lockfiles": [],
       "scan_without_lockfiles": false
     }
   },
@@ -322,13 +260,9 @@
       "reachability": true,
       "open_source_licenses": true,
       "malicious_dependencies": false,
-      "package_managers": [
-        "Composer"
-      ],
-      "lockfiles": [
-        "composer.lock"
-      ],
-      "scan_without_lockfiles": true
+      "package_managers": [],
+      "lockfiles": [],
+      "scan_without_lockfiles": false
     }
   },
   {
@@ -398,12 +332,8 @@
       "reachability": false,
       "open_source_licenses": false,
       "malicious_dependencies": false,
-      "package_managers": [
-        "Hex"
-      ],
-      "lockfiles": [
-        "mix.lock"
-      ],
+      "package_managers": [],
+      "lockfiles": [],
       "scan_without_lockfiles": false
     }
   },
@@ -438,12 +368,8 @@
       "reachability": false,
       "open_source_licenses": false,
       "malicious_dependencies": false,
-      "package_managers": [
-        "Pub"
-      ],
-      "lockfiles": [
-        "pubspec.lock"
-      ],
+      "package_managers": [],
+      "lockfiles": [],
       "scan_without_lockfiles": false
     }
   }
