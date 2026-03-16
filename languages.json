@@ -325,7 +325,7 @@
     "milan_comments": "",
     "semgrep_docs": {
       "language": "Elixir",
-      "maturity": "Beta",
+      "maturity": "GA",
       "dataflow": null,
       "pro_rules": 0,
       "framework_specific": false,
