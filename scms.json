@@ -11,15 +11,14 @@
         "Auto PRs for Supply Chain findings"
       ],
       "Azure DevOps Server": [
-        "Semgrep Assistant",
+        "Semgrep Multimodal",
         "Semgrep Managed Scans",
         "Pull request comments",
         "Query console",
         "Diff-aware scans",
         "Sending findings to Semgrep AppSec Platform",
         "Default branch identification",
-        "Auto PRs for Supply Chain findingsGeneric secrets (requires",
-        "Semgrep Assistant)"
+        "Auto PRs for Supply Chain findingsGeneric secrets (requires Semgrep Multimodal)"
       ]
     }
   },
@@ -33,18 +32,16 @@
     ],
     "unsupported_features_by_plan": {
       "Bitbucket Cloud Free": [
-        "Semgrep Assistant\u2020",
+        "Semgrep Multimodal\u2020",
         "Semgrep Managed Scan\u2020",
         "Query console",
-        "Auto PRs for Supply Chain findingsGeneric secrets (requires",
-        "Semgrep Assistant)"
+        "Auto PRs for Supply Chain findingsGeneric secrets (requires Semgrep Multimodal)"
       ],
       "Bitbucket Cloud Standard": [
-        "Semgrep Assistant\u2020",
+        "Semgrep Multimodal\u2020",
         "Semgrep Managed Scan\u2020",
         "Query console",
-        "Auto PRs for Supply Chain findingsGeneric secrets (requires",
-        "Semgrep Assistant)"
+        "Auto PRs for Supply Chain findingsGeneric secrets (requires Semgrep Multimodal)"
       ],
       "Bitbucket Cloud Premium": [
         "Query console",
