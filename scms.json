@@ -49,7 +49,7 @@
       ],
       "Bitbucket Data Center": [
         "Query console",
-        "Diff-aware scans require Bitbucket Data Center version 8.8 or later.",
+        "Diff-aware scans and triage through PR comments require Bitbucket Data Center version 8.8 or later.",
         "Auto PRs for Supply Chain findings"
       ]
     }
@@ -86,7 +86,7 @@
     ],
     "unsupported_features_by_plan": {
       "GitLab Free": [
-        "Semgrep Managed Scans*",
+        "Semgrep Managed Scans*Triage though MR comments*",
         "Query console",
         "Auto PRs for Supply Chain findings"
       ],
