@@ -239,7 +239,7 @@
       "dataflow": "cross-function",
       "pro_rules": 40,
       "framework_specific": false,
-      "reachability": false,
+      "reachability": true,
       "open_source_licenses": true,
       "malicious_dependencies": true,
       "package_managers": [],
