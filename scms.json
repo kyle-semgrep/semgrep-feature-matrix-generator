@@ -7,8 +7,7 @@
     ],
     "unsupported_features_by_plan": {
       "Azure DevOps Cloud": [
-        "Query console",
-        "Auto PRs for Supply Chain findings"
+        "Query console"
       ],
       "Azure DevOps Server": [
         "Semgrep Multimodal",
@@ -17,8 +16,7 @@
         "Query console",
         "Diff-aware scans",
         "Sending findings to Semgrep AppSec Platform",
-        "Default branch identification",
-        "Auto PRs for Supply Chain findingsGeneric secrets (requires Semgrep Multimodal)"
+        "Default branch identificationGeneric secrets (requires Semgrep Multimodal)"
       ]
     }
   },
@@ -34,23 +32,19 @@
       "Bitbucket Cloud Free": [
         "Semgrep Multimodal\u2020",
         "Semgrep Managed Scan\u2020",
-        "Query console",
-        "Auto PRs for Supply Chain findingsGeneric secrets (requires Semgrep Multimodal)"
+        "Query consoleGeneric secrets (requires Semgrep Multimodal)"
       ],
       "Bitbucket Cloud Standard": [
         "Semgrep Multimodal\u2020",
         "Semgrep Managed Scan\u2020",
-        "Query console",
-        "Auto PRs for Supply Chain findingsGeneric secrets (requires Semgrep Multimodal)"
+        "Query consoleGeneric secrets (requires Semgrep Multimodal)"
       ],
       "Bitbucket Cloud Premium": [
-        "Query console",
-        "Auto PRs for Supply Chain findings"
+        "Query console"
       ],
       "Bitbucket Data Center": [
         "Query console",
-        "Diff-aware scans and triage through PR comments require Bitbucket Data Center version 8.8 or later.",
-        "Auto PRs for Supply Chain findings"
+        "Diff-aware scans and triage through PR comments require Bitbucket Data Center version 8.8 or later."
       ]
     }
   },
@@ -68,9 +62,7 @@
       "GitHub Pro": [],
       "GitHub Team": [],
       "GitHub Enterprise Cloud": [],
-      "GitHub Enterprise Server": [
-        "Auto PRs for Supply Chain findings"
-      ]
+      "GitHub Enterprise Server": []
     }
   },
   {
@@ -86,34 +78,27 @@
     ],
     "unsupported_features_by_plan": {
       "GitLab Free": [
-        "Semgrep Managed Scans*Triage though MR comments*",
-        "Query console",
-        "Auto PRs for Supply Chain findings"
+        "Semgrep Managed Scans*Triage through MR comments*",
+        "Query console"
       ],
       "GitLab Premium": [
-        "Query console",
-        "Auto PRs for Supply Chain findings"
+        "Query console"
       ],
       "GitLab Ultimate": [
-        "Query console",
-        "Auto PRs for Supply Chain findings"
+        "Query console"
       ],
       "GitLab Dedicated / Dedicated for Government": [
-        "Query console",
-        "Auto PRs for Supply Chain findings"
+        "Query console"
       ],
       "GitLab Self-Managed Free": [
         "Semgrep Managed Scans*",
-        "Query console",
-        "Auto PRs for Supply Chain findings"
+        "Query console"
       ],
       "GitLab Self-Managed Premium": [
-        "Query console",
-        "Auto PRs for Supply Chain findings"
+        "Query console"
       ],
       "GitLab Self-Managed Ultimate": [
-        "Query console",
-        "Auto PRs for Supply Chain findings"
+        "Query console"
       ]
     }
   }
