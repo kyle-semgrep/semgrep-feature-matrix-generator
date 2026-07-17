@@ -31,12 +31,12 @@
     "unsupported_features_by_plan": {
       "Bitbucket Cloud Free": [
         "Semgrep Multimodal\u2020",
-        "Semgrep Managed Scan\u2020",
+        "Semgrep Managed Scan\u2020Autofix\u2020",
         "Query consoleGeneric secrets (requires Semgrep Multimodal)"
       ],
       "Bitbucket Cloud Standard": [
         "Semgrep Multimodal\u2020",
-        "Semgrep Managed Scan\u2020",
+        "Semgrep Managed Scan\u2020Autofix\u2020",
         "Query consoleGeneric secrets (requires Semgrep Multimodal)"
       ],
       "Bitbucket Cloud Premium": [
