@@ -92,13 +92,13 @@
       ],
       "GitLab Self-Managed Free": [
         "Semgrep Managed Scans*",
-        "Query console"
+        "Query consoleInline MR comments from Agentic Workflows require GitLab 16.5 or later."
       ],
       "GitLab Self-Managed Premium": [
-        "Query console"
+        "Query consoleInline MR comments from Agentic Workflows require GitLab 16.5 or later."
       ],
       "GitLab Self-Managed Ultimate": [
-        "Query console"
+        "Query consoleInline MR comments from Agentic Workflows require GitLab 16.5 or later."
       ]
     }
   }
