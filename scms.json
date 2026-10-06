@@ -49,6 +49,17 @@
     }
   },
   {
+    "scm": "Cursor",
+    "plans": [
+      "Cursor Origin (beta)"
+    ],
+    "unsupported_features_by_plan": {
+      "Cursor Origin (beta)": [
+        "Triage through PR commentsAutofixSemgrep Network BrokerSemgrep Agentic WorkflowsFeature parity with other SCMs is incomplete during the beta. SeeCursor Origin Managed Scans."
+      ]
+    }
+  },
+  {
     "scm": "GitHub",
     "plans": [
       "GitHub Free",
