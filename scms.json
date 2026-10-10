@@ -11,6 +11,17 @@
     }
   },
   {
+    "scm": "Code",
+    "plans": [
+      "Code search"
+    ],
+    "unsupported_features_by_plan": {
+      "Code search": [
+        "\u2705"
+      ]
+    }
+  },
+  {
     "scm": "Default",
     "plans": [
       "Default branch identification"
@@ -35,10 +46,10 @@
   {
     "scm": "Generic",
     "plans": [
-      "Generic secrets (requires Semgrep Multimodal)"
+      "Generic secrets"
     ],
     "unsupported_features_by_plan": {
-      "Generic secrets (requires Semgrep Multimodal)": [
+      "Generic secrets": [
         "\u2705"
       ]
     }
@@ -50,17 +61,6 @@
     ],
     "unsupported_features_by_plan": {
       "Pull request comments": [
-        "\u2705"
-      ]
-    }
-  },
-  {
-    "scm": "Query",
-    "plans": [
-      "Query console"
-    ],
-    "unsupported_features_by_plan": {
-      "Query console": [
         "\u2705"
       ]
     }
@@ -81,7 +81,7 @@
         "\u2705"
       ],
       "Semgrep Network Broker": [
-        "\u2705"
+        "N/A"
       ],
       "Semgrep Agentic Workflows": [
         "\u2705"
